@@ -250,7 +250,7 @@ update:
                                 ;   RENDER_COLUMN_HEIGHT);
 
   lda init_stage_index
-  asl A
+  lsr A
   sta render_columns_positions
   clc
   adc #1
