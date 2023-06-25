@@ -15,12 +15,12 @@
 
 .segment "ZEROPAGE"
 
-  ;; Array of 60 bytes containing the tiles for the two
+  ;; Array of 2*RENDER_COLUMN_HEIGHT (60) bytes containing the tiles for the two
   ;; columns that will be rendered on the next frame.
   ;; first 30 elements represent the first column,
   ;; last 30  elements represet the second column.
   ;; $ff - 60
-  diff_columns = $c3
+  render_columns = $c3
 
 .segment "ABS_VARS": absolute
 
@@ -34,21 +34,43 @@
   ;; 2 when the program is done with the algorithm
   sorting_stage = $0201
 
-  ;; The seed for the random number generation
-  ;; Two bytes
-  seed = $0202
+  SORTING_STAGE_INIT = 0
+  SORTING_STAGE_SORT = 1
+  SORTING_STAGE_DONE = 2
 
-  ;; Two bytes
-  render_columns_id = $0204
 
+  ;; The rng_seed for the random number generation
+  ;; Two bytes
+  rng_seed = $0202
+
+  ;; The on-screen indexes of the columns that must be rendered
+  ;; -1 means don't render anything
+  ;; Two bytes, two numbers
+  render_columns_positions = $0204
+
+  NO_RENDER_COLUMN = $ff
+
+  ;; Initial Stage Specific:
+
+  ;; The index of the next two elements to process
+  init_stage_index = $0206
 
 
   ;; The numbers to be sorted
   ;; 128 bytes
-  sort_numbers = $0300
+  sorting_array = $0300
+
+  SORTING_DATA_SIZE = 127
+
+  RENDER_COLUMN_HEIGHT = 30
+
+  COLUMNS_PER_SCREEN = 32
 
 
 .segment "CODE"
+
+  .import rng
+  .import rng_127
 
 
 on_reset:
@@ -111,26 +133,31 @@ main:
   lda #%10000100                ; Enable NMI, PPUDATA writes increment downard
   sta PPUCTRL
 
+  lda #%00001010                ; Enable background and leftmost column
+  sta PPUMASK
+
   ;; First Update
   lda #$01                      ; Begin first update
   sta is_updating
 
 generate_numbers:
 
-  lda #123                      ; setting seed
-  sta seed
+  lda #123                      ; setting rng_seed
+  sta rng_seed
 
   lda #231
-  sta seed+1
+  sta rng_seed+1
+
 
   ;; Initialize array with 0-127
   ldx #127
 @loop:
   txa
-  sta sort_numbers, x
+  sta sorting_array, x
   dex
   bpl @loop
 
+  jmp skip_shuffle
 shuffle:
   ldy #127
   sty $00                       ; index = 127
@@ -143,20 +170,21 @@ shuffle:
   pla
   tay
 
-  lda sort_numbers, x           ; tmp = sort_numbers[rng1]
+  lda sorting_array, x           ; tmp = sorting_array[rng1]
   pha
 
-  lda sort_numbers, y           ; sort_numbers[rng1] = sort_numbers[rng2]
-  sta sort_numbers, x
+  lda sorting_array, y           ; sorting_array[rng1] = sorting_array[rng2]
+  sta sorting_array, x
 
-  pla                           ; sort_numbers[rng2] = sort_numbers[rng1]
-  sta sort_numbers, y
+  pla                           ; sorting_array[rng2] = sorting_array[rng1]
+  sta sorting_array, y
 
   ldy $00                       ; index--
   dey
   sty $00
 
   bpl @loop                        ; } while (index >= 0)
+  skip_shuffle:
 
   ;; Update loop
 update:
@@ -166,7 +194,7 @@ update:
 
   lda sorting_stage
   bne :+
-  jsr initial_stage_update
+  jsr init_stage_update
 :
 
   ;; one day: implement code for other rendering stages
@@ -176,93 +204,196 @@ update:
 
   jmp @wait_update
 
-.proc initial_stage_update
+.proc init_stage_update
+  lda init_stage_index
+  cmp #SORTING_DATA_SIZE
+  bmi :+                        ; if (init_stage_index >= SORTING_DATA_SIZE) {
+
+  lda #$01
+  sta sorting_stage             ; sorting_stage = 1;
+
+  lda #NO_RENDER_COLUMN         ; render_columns_positions[1] = render_columns_positions[0] = NO_RENDER_COLUMN
+  sta render_columns_positions
+  sta render_columns_positions+1
+
+  rts                           ; return;
+:                               ; }
+
+  ;; Calculating tiles for array[index] and array[index+1]
+  ;; and filling it into render_columns[0:RENDER_COLUMN_HEIGHT]
+  pha                           ; generate_tiles(
+  tax                           ;   sorting_array[init_stage_index],
+  lda sorting_array, X          ;   sorting_array[init_stage_index + 1],
+  sta $00                       ;   0);
+
+  lda sorting_array+1, X
+  sta $01
+
+  lda #0
+  jsr generate_tiles
+
+  ;; Calculating tiles for array[index+2] and array[index+3]
+  ;; and filling it into render_columns[RENDER_COLUMN_HEIGHT:2*RENDER_COLUMN_HEIGHT]
+
+  pla
+  tax
+
+  lda sorting_array+2, X
+  sta $00
+
+  lda sorting_array+3, X
+  sta $01
+
+  lda #RENDER_COLUMN_HEIGHT       ; generate_tiles(
+  jsr generate_tiles            ;   sorting_array[init_stage_index+2],
+                                ;   sorting_array[init_stage_index+3],
+                                ;   RENDER_COLUMN_HEIGHT);
+
+  lda init_stage_index
+  asl A
+  sta render_columns_positions
+  clc
+  adc #1
+  sta render_columns_positions+1
+
+  lda init_stage_index          ; init_stage_index += 4
+  clc
+  adc #4
+  sta init_stage_index
+
   rts
 .endproc
 
-
-  ;; Like rng but limited to range 0-127 instead of 0-255
-  ;; Clobbers: Y
-.proc rng_127
-  jsr rng
-  cmp #128
-  bmi :+
-  sec
-  sbc #128
-:
-  rts
-.endproc
+  ;; TODO: review init stage update and weird memory thing in hex editor
 
   ;; Render routine
 on_nmi:
-  sta is_updating               ; if (is_updating) {
+  php
+  pha
+
+  lda is_updating               ; if (is_updating) {
   beq :+
+  pla
+  plp
   rti                           ; return
 :                               ; }
 
   lda sorting_stage             ; if (sorting_stage == 0) {
   bne :+
-  jsr initial_stage_render      ; initial_stage_render();
+  jsr init_stage_render      ; init_stage_render();
 :                               ; }
 
   lda #1                        ; is_updating = 1
   sta is_updating
 
+  pla
+  plp
+
   rti                           ; return;
 
-.proc initial_stage_render
+.proc init_stage_render
+
+  lda render_columns_positions
+  cmp #NO_RENDER_COLUMN
+  bne :+
+  rts
+:
+  lda render_columns_positions
+  sta $00
+  ldx #0
+
+  jsr render_column
+
+  lda render_columns_positions+1
+  sta $00
+  ldx #RENDER_COLUMN_HEIGHT
+
+  jsr render_column
+
+  bit PPUSTATUS
+
+  lda #0
+  sta PPUSCROLL
+
+  lda #0
+  sta PPUSCROLL
+
   rts
 .endproc
 
-  ;; Pseudo Random Number Generation using Galois LFSRs
-  ;; Taken from NesDev wiki
+  ;; $00: (column_index) index of the column to render
+  ;; X: (array_offset) offset into render_columns to render. Usually 0 or COLUMN_HEIGHT.
   ;;
-  ;; Clobbers: Y
-.proc rng
-  ldy #8     ; iteration count (generates 8 bits)
-  lda seed+0
+  ;; Clobbers: X, Y
+.proc render_column
+
+  bit PPUSTATUS
+
+  lda $00
+  cmp #COLUMNS_PER_SCREEN       ; if (column_index < COLUMNS_PER_SCREEN) {
+  bpl :+
+  lda #$20                      ; PPUADDR = 0x20 .. column_index;
+  sta PPUADDR
+  lda $00
+  sta PPUADDR
+
+  jmp :++                       ; } else {
 :
-  asl        ; shift the register
-  rol seed+1
-  bcc :+
-  eor #$39   ; apply XOR feedback whenever a 1 bit is shifted out
-:
-  dey
-  bne :--
-  sta seed+0
-  cmp #0     ; reload flags
+  rts                           ; return
+  lda #$24                      ; PPUADDR = 0x24 .. column_index;
+  sta PPUADDR
+  lda $00
+  sta PPUADDR
+:                               ; }
+
+  ldy #RENDER_COLUMN_HEIGHT-1   ; counter = RENDER_COLUMN_HEIGHT - 1;
+
+  txa
+  clc
+  adc #RENDER_COLUMN_HEIGHT-1     ; array_offset += RENDER_COLUMN_HEIGHT-1
+  tax
+
+@loop:                          ; do {
+  lda render_columns,x          ; PPUDATA = render_columns[array_offset]
+  sta PPUDATA
+  dex                           ; array_offset--
+  dey                           ; counter--
+  bpl @loop                     ; } while (counter >= 0)
+
+  ;; TODO: review rendering
+
   rts
 .endproc
 
   ;; Generates the sequence of tiles for the two numbers ($00, $01).
   ;; Arguments:
-  ;; $00: The first number of the pair
-  ;; $01: The second number of the pair
-  ;; A: The offset into diff_columns to save result
+  ;; $00: (x) The first number of the pair
+  ;; $01: (y) The second number of the pair
+  ;; A : (offset) The offset into render_columns to save result
   ;;
   ;; Clobbers:
-  ;; $00, $01, $02, $03, A, X
-  .proc generate_tiles
+  ;; $00, $01, $02, $03, X, Y
+.proc generate_tiles
 
-  clc                           ; i = argX + 29
-  adc 29
-  tax
+  tax                           ; i = offset
+
+  ldy #RENDER_COLUMN_HEIGHT - 1   ; counter = 29
 
   @loop:                        ; do {
 
   ;; truncating first number
   lda $00                       ; truncated_x = x < 4 ? x : 4
-  cmp #$04
+  cmp #04
   bmi @skip_truncate
-  lda #$04
+  lda #04
   @skip_truncate:
   sta $02
 
   ;; truncating second number
   lda $01                       ; truncated_y = y < 4 ? y : 4
-  cmp #$04
+  cmp #04
   bmi @skip_truncate2
-  lda #$04
+  lda #04
   @skip_truncate2:
   sta $03
 
@@ -273,19 +404,22 @@ on_nmi:
   adc $02
   adc $03
 
-  sta diff_columns, x           ; diff_columns[i] = tile_index
+  sta render_columns, x           ; render_columns[i] = tile_index
 
   sec                           ; x -= truncated_x
   lda $00
   sbc $02
   sta $00
 
+  sec
   lda $01                      ; y -= truncated_y
   sbc $03
   sta $01
 
-  dex                           ; i--
-  bpl @loop                     ; } while (i >= 0);
+  inx                           ; i++
+  dey                           ; counter--
+
+  bpl @loop                     ; } while (counter >= 0);
   rts
   .endproc
 
