@@ -15,6 +15,12 @@
 
 .segment "ZEROPAGE"
 
+  ;; General Purpose zero page "registers"
+  local0 = $01
+  local1 = $02
+  local2 = $03
+  local3 = $04
+
   ;; Array of 2*RENDER_COLUMN_HEIGHT (60) bytes containing the tiles for the two
   ;; columns that will be rendered on the next frame.
   ;; first 30 elements represent the first column,
@@ -92,7 +98,7 @@ vblankwait1:
   bpl vblankwait1
 
 clear_memory:
-  lda #$00
+  lda #0
   sta $0000, x
   sta $0100, x
   sta $0200, x
@@ -116,10 +122,10 @@ main:
   lda #$3f
   sta PPUADDR
 
-  lda #$00
+  lda #0
   sta PPUADDR
 
-  lda #$01
+  lda #1
   sta PPUDATA
 
   ;; Pallete Escape Hack
@@ -137,7 +143,7 @@ main:
   sta PPUMASK
 
   ;; First Update
-  lda #$01                      ; Begin first update
+  lda #1                      ; Begin first update
   sta is_updating
 
 generate_numbers:
@@ -157,10 +163,9 @@ generate_numbers:
   dex
   bpl @loop
 
-  jmp skip_shuffle
 shuffle:
   ldy #127
-  sty $00                       ; index = 127
+  sty local0                    ; index = 127
 
 @loop:                               ; do {
   jsr rng_127                   ; rng1 = rng_127()
@@ -179,16 +184,16 @@ shuffle:
   pla                           ; sorting_array[rng2] = sorting_array[rng1]
   sta sorting_array, y
 
-  ldy $00                       ; index--
+  ldy local0                       ; index--
   dey
-  sty $00
+  sty local0
 
   bpl @loop                        ; } while (index >= 0)
   skip_shuffle:
 
   ;; Update loop
 update:
-  @wait_update:
+  @wait_update:                 ; while (!is_updating) {  }
   lda is_updating
   beq @wait_update
 
@@ -209,7 +214,7 @@ update:
   cmp #SORTING_DATA_SIZE
   bmi :+                        ; if (init_stage_index >= SORTING_DATA_SIZE) {
 
-  lda #$01
+  lda #1
   sta sorting_stage             ; sorting_stage = 1;
 
   lda #NO_RENDER_COLUMN         ; render_columns_positions[1] = render_columns_positions[0] = NO_RENDER_COLUMN
@@ -224,10 +229,10 @@ update:
   pha                           ; generate_tiles(
   tax                           ;   sorting_array[init_stage_index],
   lda sorting_array, X          ;   sorting_array[init_stage_index + 1],
-  sta $00                       ;   0);
+  sta local0                       ;   0);
 
   lda sorting_array+1, X
-  sta $01
+  sta local1
 
   lda #0
   jsr generate_tiles
@@ -239,10 +244,10 @@ update:
   tax
 
   lda sorting_array+2, X
-  sta $00
+  sta local0
 
   lda sorting_array+3, X
-  sta $01
+  sta local1
 
   lda #RENDER_COLUMN_HEIGHT       ; generate_tiles(
   jsr generate_tiles            ;   sorting_array[init_stage_index+2],
@@ -299,13 +304,13 @@ on_nmi:
   rts
 :
   lda render_columns_positions
-  sta $00
+  sta local0
   ldx #0
 
   jsr render_column
 
   lda render_columns_positions+1
-  sta $00
+  sta local0
   ldx #RENDER_COLUMN_HEIGHT
 
   jsr render_column
@@ -321,7 +326,7 @@ on_nmi:
   rts
 .endproc
 
-  ;; $00: (column_index) index of the column to render
+  ;; local0: (column_index) index of the column to render
   ;; X: (array_offset) offset into render_columns to render. Usually 0 or COLUMN_HEIGHT.
   ;;
   ;; Clobbers: X, Y
@@ -329,12 +334,12 @@ on_nmi:
 
   bit PPUSTATUS
 
-  lda $00
+  lda local0
   cmp #COLUMNS_PER_SCREEN       ; if (column_index < COLUMNS_PER_SCREEN) {
   bpl :+
   lda #$20                      ; PPUADDR = 0x20 .. column_index;
   sta PPUADDR
-  lda $00
+  lda local0
   sta PPUADDR
 
   jmp :++                       ; } else {
@@ -342,7 +347,7 @@ on_nmi:
   rts                           ; return
   lda #$24                      ; PPUADDR = 0x24 .. column_index;
   sta PPUADDR
-  lda $00
+  lda local0
   sta PPUADDR
 :                               ; }
 
@@ -365,14 +370,14 @@ on_nmi:
   rts
 .endproc
 
-  ;; Generates the sequence of tiles for the two numbers ($00, $01).
+  ;; Generates the sequence of tiles for the two numbers (local0, local1).
   ;; Arguments:
-  ;; $00: (x) The first number of the pair
-  ;; $01: (y) The second number of the pair
+  ;; local0: (x) The first number of the pair
+  ;; local1: (y) The second number of the pair
   ;; A : (offset) The offset into render_columns to save result
   ;;
   ;; Clobbers:
-  ;; $00, $01, $02, $03, X, Y
+  ;; local0, local1, local2, local3, X, Y
 .proc generate_tiles
 
   tax                           ; i = offset
@@ -382,39 +387,39 @@ on_nmi:
   @loop:                        ; do {
 
   ;; truncating first number
-  lda $00                       ; truncated_x = x < 4 ? x : 4
+  lda local0                       ; truncated_x = x < 4 ? x : 4
   cmp #04
   bmi @skip_truncate
   lda #04
   @skip_truncate:
-  sta $02
+  sta local2
 
   ;; truncating second number
-  lda $01                       ; truncated_y = y < 4 ? y : 4
+  lda local1                       ; truncated_y = y < 4 ? y : 4
   cmp #04
   bmi @skip_truncate2
   lda #04
   @skip_truncate2:
-  sta $03
+  sta local3
 
   ;; Tile Linearization
-  lda $02                       ; tile_index = truncated_x * 5 + truncated_y
+  lda local2                       ; tile_index = truncated_x * 5 + truncated_y
   asl A
   asl A
-  adc $02
-  adc $03
+  adc local2
+  adc local3
 
   sta render_columns, x           ; render_columns[i] = tile_index
 
   sec                           ; x -= truncated_x
-  lda $00
-  sbc $02
-  sta $00
+  lda local0
+  sbc local2
+  sta local0
 
   sec
-  lda $01                      ; y -= truncated_y
-  sbc $03
-  sta $01
+  lda local1                      ; y -= truncated_y
+  sbc local3
+  sta local1
 
   inx                           ; i++
   dey                           ; counter--
