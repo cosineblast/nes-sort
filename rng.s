@@ -1,11 +1,5 @@
 
-    .segment "ABS_VARS" : absolute
-  ;; The rng_seed for the random number generation
-  ;; Two bytes
-  rng_seed = $0202
-
-    .segment "CODE"
-
+  .include "vars_h.s"
 
     .export rng
     .export rng_127
