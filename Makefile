@@ -6,8 +6,8 @@
 
 rom: build/sort.nes
 
-build/sort.nes: columns.s rng.s main.s
-	cl65 $^ -o build/sort.nes --target nes --verbose
+build/sort.nes: *.s
+	cl65 columns.s rng.s main.s -o build/sort.nes --target nes --verbose
 
 
 

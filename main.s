@@ -20,7 +20,7 @@
 
   .import rng
   .import rng_127
-  .import generate_tiles
+  .import compute_column_tiles
   .import render_column
 
 on_reset:
@@ -110,6 +110,7 @@ generate_numbers:
   dex
   bpl @loop
 
+  ;; jmp skip_shuffle
 shuffle:
   ldy #127
   sty local0                    ; index = 127
@@ -173,7 +174,7 @@ update:
 
   ;; Calculating tiles for array[index] and array[index+1]
   ;; and filling it into render_columns[0:RENDER_COLUMN_HEIGHT]
-  pha                           ; generate_tiles(
+  pha                           ; compute_column_tiles(
   tax                           ;   sorting_array[init_stage_index],
   lda sorting_array, X          ;   sorting_array[init_stage_index + 1],
   sta local0                       ;   0);
@@ -182,7 +183,7 @@ update:
   sta local1
 
   lda #0
-  jsr generate_tiles
+  jsr compute_column_tiles
 
   ;; Calculating tiles for array[index+2] and array[index+3]
   ;; and filling it into render_columns[RENDER_COLUMN_HEIGHT:2*RENDER_COLUMN_HEIGHT]
@@ -196,8 +197,8 @@ update:
   lda sorting_array+3, X
   sta local1
 
-  lda #RENDER_COLUMN_HEIGHT       ; generate_tiles(
-  jsr generate_tiles            ;   sorting_array[init_stage_index+2],
+  lda #RENDER_COLUMN_HEIGHT       ; compute_column_tiles(
+  jsr compute_column_tiles            ;   sorting_array[init_stage_index+2],
                                 ;   sorting_array[init_stage_index+3],
                                 ;   RENDER_COLUMN_HEIGHT);
 
@@ -265,7 +266,7 @@ on_nmi:
   lda #0
   sta PPUSCROLL
 
-  lda #0
+  lda #224
   sta PPUSCROLL
 
   rts

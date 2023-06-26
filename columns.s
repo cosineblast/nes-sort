@@ -4,10 +4,10 @@
 .include "vars_h.s"
 .include "PPU.s"
 
-    .export generate_tiles
+    .export compute_column_tiles
     .export render_column
 
-  ;; Generates the sequence of tiles for the two numbers (local0, local1).
+  ;; Computes the sequence of tiles for the two numbers (local0, local1).
   ;; Arguments:
   ;; local0: (x) The first number of the pair
   ;; local1: (y) The second number of the pair
@@ -15,7 +15,7 @@
   ;;
   ;; Clobbers:
   ;; local0, local1, local2, local3, X, Y
-.proc generate_tiles
+.proc compute_column_tiles
 
   tax                           ; i = offset
 
@@ -85,10 +85,12 @@
 
   jmp :++                       ; } else {
 :
-  rts                           ; return
-  lda #$24                      ; PPUADDR = 0x24 .. column_index;
-  sta PPUADDR
-  lda local0
+  lda #$24                      ; PPUADDR = 0x24 .. (column_index - 32);
+  sta PPUADDR                   ; // why - 32 you may ask, well for some reason unknown to me uh
+  lda local0                    ; // the second nametable gets shifted a row downwards, so we subtract 32
+  sec                           ; // to adjust for that
+  sbc #32
+
   sta PPUADDR
 :                               ; }
 
