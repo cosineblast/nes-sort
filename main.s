@@ -125,7 +125,10 @@ main:
   lda #0
   sta PPUADDR
 
-  lda #1
+  lda #$0f
+  sta PPUDATA
+
+  lda #$20
   sta PPUDATA
 
   ;; Pallete Escape Hack
