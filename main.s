@@ -22,6 +22,7 @@
   .import rng_127
   .import compute_column_tiles
   .import render_column
+  .import sort_stage_update
 
 on_reset:
   sei		; disable IRQs
@@ -145,10 +146,17 @@ update:
   lda is_updating
   beq @wait_update
 
-  lda sorting_stage
-  bne :+
+  lda current_sorting_stage
+  beq @is_init
+  cmp #1
+  beq @is_sort
+
+  @is_init:
   jsr init_stage_update
-:
+  jmp @end
+  @is_sort:
+  jsr sort_stage_update
+  @end:
 
   ;; one day: implement code for other rendering stages
 
@@ -163,7 +171,7 @@ update:
   bmi :+                        ; if (init_stage_index >= SORTING_DATA_SIZE) {
 
   lda #1
-  sta sorting_stage             ; sorting_stage = 1;
+  sta current_sorting_stage             ; current_sorting_stage = 1;
 
   lda #NO_RENDER_COLUMN         ; render_columns_positions[1] = render_columns_positions[0] = NO_RENDER_COLUMN
   sta render_columns_positions
@@ -229,10 +237,19 @@ on_nmi:
   rti                           ; return
 :                               ; }
 
-  lda sorting_stage             ; if (sorting_stage == 0) {
-  bne :+
-  jsr init_stage_render      ; init_stage_render();
-:                               ; }
+  lda current_sorting_stage
+  beq @is_init
+  cmp #1
+  beq @is_sort
+  jmp @end
+
+@is_init:                    ; if (current_sorting_stage == 0) {
+  jsr init_stage_render      ;      init_stage_render();
+  jmp @end                   ; }
+
+@is_sort:                       ; else if (sortin_stage == 1) {
+  jsr sort_stage_render         ;   current_sorting_stage_render();
+@end:                           ; }
 
   lda #1                        ; is_updating = 1
   sta is_updating
@@ -244,22 +261,7 @@ on_nmi:
 
 .proc init_stage_render
 
-  lda render_columns_positions
-  cmp #NO_RENDER_COLUMN
-  bne :+
-  rts
-:
-  lda render_columns_positions
-  sta local0
-  ldx #0
-
-  jsr render_column
-
-  lda render_columns_positions+1
-  sta local0
-  ldx #RENDER_COLUMN_HEIGHT
-
-  jsr render_column
+  jsr render_columns_from_positions
 
   bit PPUSTATUS
 
@@ -270,6 +272,40 @@ on_nmi:
   sta PPUSCROLL
 
   rts
+.endproc
+
+.proc render_columns_from_positions
+  lda render_columns_positions  ; if (render_column_positions[0] != NO_RENDER_COLUMN) {
+  cmp #NO_RENDER_COLUMN
+  beq :+
+
+  sta local0                    ; render_column(render_column_positions[0], 0);
+  ldx #0
+  jsr render_column             ; }
+:
+  lda render_columns_positions+1 ; if (render_columns_positions[1] != NO_RENDER_COLUMN) {
+  cmp #NO_RENDER_COLUMN
+  beq :+
+
+  sta local0                    ; render_column(render_columns_positions[1], RENDER_COLUMN_HEIGHT);
+  ldx #RENDER_COLUMN_HEIGHT
+  jsr render_column
+:
+  rts
+.endproc
+
+.proc sort_stage_render
+
+  jsr render_columns_from_positions
+
+  bit PPUSTATUS
+
+  lda #0
+  sta PPUSCROLL
+
+  lda #224
+  sta PPUSCROLL
+
 .endproc
 
 

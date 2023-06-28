@@ -21,7 +21,7 @@
   ;; 0 when the program is doing the initial render of the tiles
   ;; 1 when the program is already rendering the algorithm steps
   ;; 2 when the program is done with the algorithm
-  sorting_stage = $0201
+  current_sorting_stage = $0201
 
   SORTING_STAGE_INIT = 0
   SORTING_STAGE_SORT = 1
@@ -42,8 +42,16 @@
   ;; Initial Stage Specific:
 
   ;; The index of the next two elements to process
+  ;; One byte
   init_stage_index = $0206
 
+  ;; The is the index of the element that is being inserted
+  ;; by the current insertion of the sort
+  insertion_sort_forward_index = $0207
+
+  ;; This is the index of the element that we are comparing against
+  ;; in the current insertion of the insertion sort
+  insertion_sort_backward_index = $0208
 
   ;; The numbers to be sorted
   ;; 128 bytes

@@ -108,7 +108,5 @@
   dey                           ; counter--
   bpl @loop                     ; } while (counter >= 0)
 
-  ;; TODO: review rendering
-
   rts
 .endproc
