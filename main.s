@@ -150,6 +150,7 @@ update:
   beq @is_init
   cmp #1
   beq @is_sort
+  jmp @end
 
   @is_init:
   jsr init_stage_update

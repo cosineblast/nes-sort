@@ -25,7 +25,8 @@
 
 @no_yield:                         ; }
 
-    ;; TODO: change sorting stage to done.
+    lda #2
+    sta current_sorting_stage
     rts
 .endproc
 
