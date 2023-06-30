@@ -4,9 +4,72 @@
 .include "vars_h.s"
 .include "PPU.s"
 
-    .export compute_column_tiles
-    .export render_column
+.export compute_column_tiles
+.export render_column
+.export notify_update
 
+  ;; Computes the column tiles for the sorting_array numbers at
+  ;; the given indexes. This function completely fills render_columns
+  ;; with the representing columns of the given indexes.
+  ;;
+  ;; Arguments:
+  ;; local0: First index to notify column update
+  ;; local1: Second index to notify column update
+  ;;
+  ;; Clobbers:
+  ;; local0, local1, local2, local3, X, Y
+.proc notify_update
+
+  lda local0
+  lsr A
+  sta render_columns_positions
+
+  lda local1
+  lsr A
+  sta render_columns_positions+1
+
+
+
+  lda local1
+  pha
+
+  lda #0
+  jsr compute_column_tiles_from_index
+
+  pla
+  sta local0
+  lda #RENDER_COLUMN_HEIGHT
+  jsr compute_column_tiles_from_index
+
+  rts
+.endproc
+
+  ;; Computes the sequence of tiles for the column
+  ;; that represents the value sorting_array at the
+  ;; given index.
+  ;;
+  ;; Arguments:
+  ;; local0: (index) The first number of the pair
+  ;; A : (offset) The offset into render_columns to save result
+  ;;
+  ;; Clobbers:
+  ;; local0, local1, local2, local3, X, Y
+.proc compute_column_tiles_from_index
+  pha
+  lda local0
+  and #$fe
+
+  tax
+  lda sorting_array, x
+  sta local0
+
+  lda sorting_array+1,x
+  sta local1
+
+  pla
+
+  jmp compute_column_tiles
+.endproc
   ;; Computes the sequence of tiles for the two numbers (local0, local1).
   ;; Arguments:
   ;; local0: (x) The first number of the pair

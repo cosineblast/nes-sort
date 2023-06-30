@@ -53,6 +53,10 @@
   ;; in the current insertion of the insertion sort
   insertion_sort_backward_index = $0208
 
+  ;; One byte
+  insertion_sort_has_started = $0209
+
+
   ;; The numbers to be sorted
   ;; 128 bytes
   sorting_array = $0300
