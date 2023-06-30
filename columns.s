@@ -22,10 +22,16 @@
 
   lda local0
   lsr A
+  sta local2
   sta render_columns_positions
 
   lda local1
   lsr A
+  cmp local2
+
+  bne :+
+  lda #NO_RENDER_COLUMN
+:
   sta render_columns_positions+1
 
 

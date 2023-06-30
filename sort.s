@@ -7,8 +7,6 @@
 
 .import notify_update
 
-    ;; TODO: review this
-
 .proc sort_stage_update
 
     lda insertion_sort_has_started ; if (insertion_sort_has_started) {
@@ -35,9 +33,8 @@
 .proc first_update
     lda #1
     sta insertion_sort_backward_index
-
-    lda #1
     sta insertion_sort_forward_index
+    sta insertion_sort_has_started
 
     jmp enter_insert
 .endproc

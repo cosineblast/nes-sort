@@ -96,10 +96,10 @@ main:
 
 generate_numbers:
 
-  lda #123                      ; setting rng_seed
+  lda #231                      ; setting rng_seed
   sta rng_seed
 
-  lda #231
+  lda #$ff
   sta rng_seed+1
 
 
