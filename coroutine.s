@@ -1,4 +1,9 @@
 
+;; coroutine.s 
+;; Implementation for the sorting coroutine.
+
+;; TODO: make header file for this
+
 .code
 
 .export yield
