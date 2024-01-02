@@ -148,7 +148,7 @@ update:
 
   lda current_sorting_stage
   beq @is_init
-  cmp #1
+  cmp #PROGRAM_STAGE_SORT
   beq @is_sort
   jmp @end
 

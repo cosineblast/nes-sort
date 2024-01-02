@@ -52,9 +52,9 @@
   ;; 2 when the program is done with the algorithm
   current_sorting_stage = $0201
 
-  SORTING_STAGE_INIT = 0
-  SORTING_STAGE_SORT = 1
-  SORTING_STAGE_DONE = 2
+  PROGRAM_STAGE_INIT = 0
+  PROGRAM_STAGE_SORT = 1
+  PROGRAM_STAGE_DONE = 2
 
 
   ;; The rng_seed for the random number generation

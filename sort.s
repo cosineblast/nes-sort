@@ -25,7 +25,7 @@
 
 @no_yield:                         ; }
 
-    lda #2
+    lda #PROGRAM_STAGE_DONE
     sta current_sorting_stage
     rts
 .endproc
