@@ -7,7 +7,7 @@
 rom: build/sort.nes
 
 build/sort.nes: *.s
-	cl65 main.s columns.s rng.s sort.s -o build/sort.nes --target nes --verbose
+	cl65 main.s columns.s rng.s sort.s coroutine.s -o build/sort.nes --target nes --verbose
 
 
 

@@ -74,23 +74,18 @@
   ;; One byte
   init_stage_index = $0206
 
-  ;; (Insertion) Sort Specific:
-  ;; The is the index of the element that is being inserted
-  ;; by the current insertion of the sort
-  insertion_sort_forward_index = $0207
-
-  ;; This is the index of the element that we are comparing against
-  ;; in the current insertion of the insertion sort
-  insertion_sort_backward_index = $0208
-
-  ;; One byte
-  insertion_sort_has_started = $0209
-
-
   ;; The numbers to be sorted
   ;; 128 bytes
   sorting_array = $0300
 
   SORTING_DATA_SIZE = 127
+
+  ;; Coroutine specific :
+  coroutine_started = $0280
+  coroutine_s_register = $0284
+  coroutine_local0 = $0285 ; 8 bytes
+
+  ;; entire page
+  coroutine_stack_start = $0400
 
 

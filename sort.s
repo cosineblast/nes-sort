@@ -3,110 +3,123 @@
 
 .include "vars_h.s"
 
-.export sort_stage_update
-
+;; column.s
 .import notify_update
+
+;; coroutine.s
+.import coroutine_resume
+.import coroutine_yield
+
+;; .exports are at the bottom of the file 
+;;   for scope reasons.
 
 .proc sort_stage_update
 
-    lda insertion_sort_has_started ; if (insertion_sort_has_started) {
-    bne @not_first_update          ;
-    jsr first_update               ;    (result, swap_indexes) = first_update();
-    jmp @end
-@not_first_update:                 ; else {
-    jsr enter_insert               ;    (result, swap_indexes) = enter_insert();
-@end:                              ; }
+    jsr coroutine_resume  ;    (result, swap_indexes) = coroutine_resume();
 
-    bne @no_yield                  ; if (result == 0) {
+    lda local2 ; note: local2 is the register that indicates
+               ; whether the sorting coroutine has ended or not
 
-    jmp notify_update           ;      notify_update(swap_indexes);
-                                ;      return;
+    bne @coroutine_done              ; if (result == 0) {
 
+    jmp notify_update                ;      notify_update(swap_indexes);
+                                     ;      return;
+@coroutine_done:                           ; }
 
-@no_yield:                         ; }
-
-    lda #PROGRAM_STAGE_DONE
-    sta current_sorting_stage
-    rts
+    lda #PROGRAM_STAGE_DONE          ; else {
+    sta current_sorting_stage        ;   current_sorting_stage = PROGRAM_STAGE_DONE;
+    rts                              ; return;
+                                     ; }
 .endproc
 
 
-.proc first_update
-    lda #1
-    sta insertion_sort_backward_index
-    sta insertion_sort_forward_index
-    sta insertion_sort_has_started
+  ;; The is the index of the element that is being inserted
+  ;; by the current insertion of the sort
+  ; local6 = forward_index
 
-    jmp enter_insert
-.endproc
+  ;; This is the index of the element that we are comparing against
+  ;; in the current insertion of the insertion sort
+  ; local7 = backward_index (also known as just "index")
 
+  ;; Insertion routine:
+  ;; the backward index refers to the index of the element being inserted right now, the
+  ;; forward refers to the original index of that element before its insertion.
+  ;; 
+  ;; This routine is intended to be called as a coroutine, and it does not return, 
+  ;; it yields through coroutine_yield
+  ;;
+  ;; Arguments: None
+  ;;
+  ;; yields:
+  ;; local2: 1 if this was a final yield, 0 otherwise
+  ;; local0, local1: The indexes of the two values that were swapped 
+  ;;   (if nonfinal yield)
+  ;; Clobbers: specified by coroutine_yield
 
+.proc insertion_sort
 
-    ;; (re) Enters element insertion routine:
-    ;; the backward index refers to the index of the element being inserted right now, the
-    ;; forward refers to the original index of that element before its insertion.
-    ;;
-    ;; When this function returns, it is either because of a yield (meaning a swap has occurred),
-    ;; or because of a final return. After a yield is
-    ;;
-    ;; Calling this function effectively resumes it from its previous state in the insertion.
-    ;;
-    ;; Arguments: None
-    ;;
-    ;; Returns:
-    ;; A: 0 if this was a yield return, 1 if this was a final return
-    ;; local0, local1: The indexes of the two values
-    ;;
-    ;;
-    ;; Clobbers: X, local0, local1
+    lda #1 
+    sta local6                      ; forward_index = 1;
+    sta local7                      ; backward_index = 1;
 
-.proc enter_insert                    ; while (true) {
-    ldx insertion_sort_backward_index ;     index = backward_index;
+    @full_loop:                     ; while (true) {
 
-    beq :+
+    @insert_loop:                   ;   while (index != 0 && sorting_array[index] < sorting_array[index-1]) {
+                                    ;
+    ldx local7                      ;
+                                    ;
+    beq :+                          ;
+                                    ;
+    lda sorting_array-1, x          ;
+    sta local0                      ;
+                                    ;
+    lda sorting_array, x            ;
+    sta local1                      ;
+                                    ;
+    cmp local0                      ;
+    bpl :+                          ;
 
-    lda sorting_array-1, x
-    sta local0
-
-    lda sorting_array, x
-    sta local1
-
-    cmp local0                              ; if (index != 0 && sorting_array[index] < sorting_array[index-1]) {
-    bpl :+
-
-    lda local0                              ;   swap_array(index, index-1);
+    lda local0                      ;       swap_array(index, index-1);
     sta sorting_array, x
     lda local1
     sta sorting_array-1, x
 
-    stx local0                      ;   result[0] = index;
+    stx local0                      ;       result[0] = index;
     dex
-    stx local1                    ;   result[1] = index-1;
+    stx local1                      ;       result[1] = index-1;
 
-    stx insertion_sort_backward_index       ;   backward_index = index - 1;
+    stx local7                      ;       backward_index = index - 1;
 
     lda #0
-    rts                                     ;   yield; // (return 0)
-:                                           ; } else {
+    sta local2
+    jsr coroutine_yield             ;       yield 0
 
-    ;; // it's ok, move to next forward index
+    jmp @insert_loop                ;     }
+:                                   
 
-    ldx insertion_sort_forward_index        ;
-    inx                                     ; backward_index  = ++forward_index;
-    stx insertion_sort_forward_index
-    stx insertion_sort_backward_index
+                                    ; // it's ok, move to next forward index
+
+    ldx local6  ;
+    inx                               ;   backward_index  = ++forward_index;
+    stx local6  ;
+    stx local7 ;
 
 
-    lda insertion_sort_forward_index        ; if (forward_index >= SORTING_DATA_SIZE) {
+    lda local6     ; if (forward_index >= SORTING_DATA_SIZE) {
     cmp #SORTING_DATA_SIZE
     bmi :+
 
     lda #1
-    rts                                     ;  return; // (return 1)
-:                                           ; }
+    sta local2
+    jsr coroutine_yield                  ;  yield 1
+    @UB: ; resuming again is undefined behaviour
+    jmp @UB
+:                                        ; }
 
-    jmp enter_insert                  ;}
-
-
+    jmp @full_loop                     ;}
 
 .endproc
+
+.export coroutine_start_location = insertion_sort
+.export sort_stage_update
+
