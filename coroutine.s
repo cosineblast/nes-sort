@@ -2,7 +2,36 @@
 ;; coroutine.s 
 ;; Implementation for the sorting coroutine.
 
-;; TODO: make header file for this
+;; This program implements a coroutine mechanism for the sorting algorithms.
+;; When the sorting algorithm is to be started, one calls the  
+;; coroutine_resume subroutine for the first time.
+
+;; When coroutine_resume is executed, it copies the execution context
+;; (stack, S register)
+;; to a spare memory location.
+;; After that is done, if coroutine_resume is being
+;; executed for the first time, it will 
+;; reset the execution context to a default one, and  
+;; jump to coroutine_start_location, thus starting the coroutine execution.
+
+;; The coroutine code should eventually call the coroutine_yield function.
+;; Whenever that happens, the execution context (stack, locals, S register)
+;; is copied to a spare location, and the execution context saved 
+;; earlier by coroutine_resume is restored. coroutine_yield 
+;; will then jump to the return location of the earlier coroutine_resume call.
+
+;; After the 'return' of coroutine_resume (performed by coroutine_yield),
+;; the code may decide to call coroutine_resume once again. Once that happens, 
+;; the execution will be saved. 
+
+;; However, this time, instead of resetting the execution context and jumping 
+;; to coroutine_start_location, coroutine_resume will restore the execution 
+;; context saved in the latest coroutine_yield call, and will jump to its return location.
+
+;; It is worth noting that coroutine_yield saves the local registers, but coroutine_resume doesn't.
+;; This is intentional, and one of the side effects of this, is that 
+;; after coroutine_resume returns, it is possible to inspect 
+;; the local variables of the coroutine at yield point.
 
 .code
 
@@ -13,12 +42,14 @@
 
 .include "vars_h.s"
 
+;; helper macros
+
 ;; Swaps the 6502 stack ($0100..$01FF) with the 
 ;; coroutine_stack.
 ;; Clobbers: A, X, Y
 .macro swap_stacks
-;; TODO: don't copy entire stack, copy only the stack used 
-;; by the stack registers.
+; to do: don't copy entire stack, copy only the stack used 
+; up to the stack registers.
 
 ldx #$00                      ; i = 0
 @stack_copy_loop:             ; do {
@@ -40,35 +71,6 @@ ldx #$00                      ; i = 0
   txs
 .endmacro
 
-  ;; coroutine_yield: 
-  ;; This special procedure attempts to implement 
-  ;; coroutine 'yield' behaviour. 
-  ;; This procedure assumes coroutine_resume
-  ;; was called at least once.
-  ;;
-  ;; When this procedure is called, the current stack¹
-  ;; is saved, alongside all 8 the localX registers. 
-  ;;
-  ;; Then, the stack is reset to its state before the last 
-  ;; coroutine_resume call and the control is given back to 
-  ;; the coroutine_resume return location.
-  ;;
-  ;; Then, if another coroutine_resume call is performed,
-  ;; the coroutine state is restored, and this
-  ;; procedure returns.
-  ;;
-  ;; it is expected that one calls this with jsr.
-  ;; 
-  ;; calling coroutine_yield clobbers:
-  ;;  literally everything other than 
-  ;;  the values mentioned to be saved.
-  ;;  status flags need not be saved.
-  ;;
-  ;; calling coroutine_resume clobbers:
-  ;;  everything but the stack¹ and S
-  ;;  
-  ;; ¹the implementation may copy only the stack up to 
-  ;;  the S register, instead of the entire stack.
 .proc coroutine_yield
   ;; save local registers
   ;; note: yield doesn't have to restore 
@@ -90,9 +92,6 @@ ldx #$00                      ; i = 0
   rts
 .endproc
 
-  ;; see coroutine_yield
-
-  ;; This routine resumes execution of the current sorting coroutine.
 .proc coroutine_resume
   swap_s_registers
 
