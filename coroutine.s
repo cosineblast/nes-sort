@@ -118,5 +118,9 @@ ldx #$00                      ; i = 0
   :
   lda #1
   sta coroutine_started
+
+  ldx #$ff
+  txs ; we're good to go!
+
   jmp coroutine_start_location
 .endproc
