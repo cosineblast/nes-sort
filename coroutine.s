@@ -33,14 +33,14 @@
 ;; after coroutine_resume returns, it is possible to inspect 
 ;; the local variables of the coroutine at yield point.
 
-.code
-
 .export coroutine_yield
 .export coroutine_resume
 
 .import coroutine_start_location
 
 .include "vars_h.s"
+
+.code
 
 ;; helper macros
 

@@ -4,6 +4,8 @@
 .include "vars_h.s"
 .include "PPU.s"
 
+.code
+
 .export compute_column_tiles
 .export render_column
 .export notify_update

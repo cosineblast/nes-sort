@@ -35,6 +35,3 @@
 
 .import coroutine_stack_start
 
-
-;; TODO: add .code on every file that includes this.
-.code

@@ -1,6 +1,8 @@
 
   .include "vars_h.s"
 
+  .code
+
     .export rng
     .export rng_127
 

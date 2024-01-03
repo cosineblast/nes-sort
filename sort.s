@@ -1,5 +1,4 @@
 
-.code
 
 .include "vars_h.s"
 
@@ -9,6 +8,9 @@
 ;; coroutine.s
 .import coroutine_resume
 .import coroutine_yield
+
+
+.code
 
 ;; .exports are at the bottom of the file 
 ;;   for scope reasons.

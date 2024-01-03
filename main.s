@@ -13,9 +13,9 @@
     .addr on_reset
     .addr 0
 
-.segment "CODE"
-
   .include "vars_h.s"
+
+.segment "CODE"
 
 
   .import rng
