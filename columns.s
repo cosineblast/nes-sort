@@ -6,9 +6,6 @@
 
 .code
 
-.export compute_column_tiles
-.export render_column
-.export notify_update
 
   ;; Computes the column tiles for the sorting_array numbers at
   ;; the given indexes. This function completely fills render_columns
@@ -181,3 +178,30 @@
 
   rts
 .endproc
+
+
+.proc render_columns_from_positions
+  lda render_columns_positions  ; if (render_column_positions[0] != NO_RENDER_COLUMN) {
+  cmp #NO_RENDER_COLUMN
+  beq :+
+
+  sta local0                    ; render_column(render_column_positions[0], 0);
+  ldx #0
+  jsr render_column             ; }
+:
+  lda render_columns_positions+1 ; if (render_columns_positions[1] != NO_RENDER_COLUMN) {
+  cmp #NO_RENDER_COLUMN
+  beq :+
+
+  sta local0                    ; render_column(render_columns_positions[1], RENDER_COLUMN_HEIGHT);
+  ldx #RENDER_COLUMN_HEIGHT
+  jsr render_column
+:
+  rts
+.endproc
+
+
+.export compute_column_tiles
+.export render_column
+.export render_columns_from_positions
+.export notify_update
