@@ -17,6 +17,8 @@
 .import get_input
 
 
+
+
 .code
 
 ;; .exports are at the bottom of the file
@@ -24,7 +26,10 @@
 
 .proc sort_stage_update
 
-  jsr get_input
+  jsr handle_input
+
+
+
 
     jsr coroutine_resume  ;    (result, swap_indexes) = coroutine_resume();
 
@@ -41,6 +46,38 @@
     sta current_sorting_stage        ;   current_sorting_stage = PROGRAM_STAGE_DONE;
     rts                              ; return;
                                      ; }
+.endproc
+
+.proc handle_input
+  jsr get_input
+
+  ; if ((controller_value & JOY_RIGHT) &&
+  ;      array_scroll_offset < SORTING_DATA_SIZE) {
+  lda controller_value
+  and #JOY_RIGHT
+  beq :+
+  lda array_scroll_offset
+  cmp #SORTING_DATA_SIZE/2
+  bcs :+
+
+  ; array_scroll_offset += 1
+  inc array_scroll_offset
+
+  ; }
+  :
+
+  ; if ((controller_value & JOY_LEFT) &&
+  ;      array_scroll_offset != 0) {
+  lda controller_value
+  and #JOY_LEFT
+  beq :+
+  lda array_scroll_offset
+  beq :+
+  dec array_scroll_offset
+
+: ; }
+
+  rts
 .endproc
 
 ;; TODO: document sorting routine ABI

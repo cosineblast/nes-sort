@@ -33,6 +33,7 @@ on_reset:
   ldx #$ff 	; Set up stack
   txs
   inx		; now X = 0
+  stx ppuctrl_value
   stx PPUCTRL	; disable NMI
   stx PPUMASK 	; disable rendering
   stx $4010 	; disable DMC IRQs
@@ -86,6 +87,7 @@ main:
   sta PPUADDR
 
   lda #%10000100                ; Enable NMI, PPUDATA writes increment downard
+  sta ppuctrl_value
   sta PPUCTRL
 
   lda #%00001010                ; Enable background and leftmost column
@@ -265,11 +267,24 @@ on_nmi:
 
   bit PPUSTATUS
 
-  lda #0
+  ;; we reset PPUCTRL, because after touching
+  ;; ppuaddr, the base namespace gets modified.
+  lda ppuctrl_value
+  sta PPUCTRL
+  sta ppuctrl_value
+
+  ; set_PPUSCROLL(array_scroll_offset * 4);
+  bit PPUSTATUS
+  lda array_scroll_offset
+  asl A
+  asl A
   sta PPUSCROLL
 
+  ; set_PPUSCROLL(224);
   lda #224
   sta PPUSCROLL
+
+  rts
 
 .endproc
 

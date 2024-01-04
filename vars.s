@@ -62,6 +62,13 @@ render_columns_positions: .res 2
 ;; The controller input value
 controller_value: .res 8
 
+;; The current value stored in PPUCTRL
+ppuctrl_value: .res 1
+
+;; The index of the array element
+;; the screen should start at
+array_scroll_offset: .res 1
+
 
 ;; Initial stage variables:
 
@@ -113,6 +120,8 @@ coroutine_stack_start: .res 256
 .export render_columns_positions
 .export init_stage_index
 .export controller_value
+.export ppuctrl_value
+.export array_scroll_offset
 
 .export coroutine_started
 .export coroutine_s_register

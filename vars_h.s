@@ -28,6 +28,9 @@
 .import render_columns_positions
 .import init_stage_index
 .import controller_value
+.import ppuctrl_value
+.import scroll_position
+.import array_scroll_offset
 
 .import sorting_array
 .import aux_array
