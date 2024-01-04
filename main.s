@@ -103,13 +103,32 @@ generate_numbers:
   sta rng_seed+1
 
 
-  ;; Initialize array with 0-127
-  ldx #127
+  ;; Initialize array
+  ;; 0..100 is initalized with 0..100
+  ;; 101..127 is initalized with 1..7
+  ldx #100
 @loop:
   txa
   sta sorting_array, x
   dex
   bpl @loop
+
+
+  ldx #101
+  ldy #0
+@loop2:
+  tya
+  sta sorting_array, x
+  iny
+  iny
+  iny
+  iny
+  inx
+  txa
+  cmp #127
+  bne @loop2
+
+
 
   ;; jmp skip_shuffle
 shuffle:
