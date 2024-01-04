@@ -106,27 +106,42 @@ generate_numbers:
   ;; Initialize array
   ;; 0..100 is initalized with 0..100
   ;; 101..127 is initalized with 1..7
+
+  ; for (i8 i = 100; i >= 0;  i--) {
   ldx #100
 @loop:
+
+  ; sorting_array[i] = i
   txa
   sta sorting_array, x
+
+  ; }
   dex
   bpl @loop
 
-
+  ; j = 0
+  ; for (i = 101; i != 127; i++) {
   ldx #101
   ldy #0
 @loop2:
+
+  ; sorting_array[i] = j
   tya
   sta sorting_array, x
+
+  ; j += 4
   iny
   iny
   iny
   iny
+
+  ; i += 1
   inx
   txa
+
   cmp #127
   bne @loop2
+  ; }
 
 
 
