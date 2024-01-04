@@ -197,6 +197,12 @@ update:
   lda is_updating
   beq @wait_update
 
+  ; if (current_sorting_stage == 0) {
+  ;   init_stage_update()
+  ; }
+  ; else {
+  ;   sort_stage_update()
+  ; }
   lda current_sorting_stage
   beq @is_init
   cmp #PROGRAM_STAGE_SORT
@@ -210,14 +216,17 @@ update:
   jsr sort_stage_update
   @end:
 
-  ;; one day: implement code for other rendering stages
-
+  ; is_updating = 0
   lda #0
   sta is_updating
 
+  ; }
   jmp @wait_update
 
+;; init_stage_update()
+;; TODO: document this
 .proc init_stage_update
+
   ; if (init_stage_index >= SORTING_DATA_SIZE) {
   lda init_stage_index
   cmp #SORTING_DATA_SIZE
@@ -236,6 +245,8 @@ update:
   ; return;
   rts
 
+  ; }
+:
   ;; Calculating tiles for array[index] and array[index+1]
   ;; and filling it into render_columns[0:RENDER_COLUMN_HEIGHT]
 
@@ -274,9 +285,12 @@ update:
   jsr compute_column_tiles
 
 
+  ; render_columns_position[0] = init_stage_index/2
   lda init_stage_index
   lsr A
   sta render_columns_positions
+
+  ; render_columns_positions[1] = init_stage_index/2 + 1
   clc
   adc #1
   sta render_columns_positions+1
@@ -287,6 +301,7 @@ update:
   adc #4
   sta init_stage_index
 
+  ; return
   rts
 .endproc
 
