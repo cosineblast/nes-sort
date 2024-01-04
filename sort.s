@@ -67,15 +67,18 @@
 
 .proc insertion_sort
 
+@forward_index = local6
+@backward_index = local7
+
     lda #1
-    sta local6              ; forward_index = 1;
-    sta local7              ; backward_index = 1;
+    sta @forward_index      ; forward_index = 1;
+    sta @backward_index     ; backward_index = 1;
 
     @full_loop:             ; while (true) {
 
     @insert_loop:           ;   while (index != 0 && sorting_array[index] < sorting_array[index-1]) {
                             ;
-    ldx local7              ;
+    ldx @backward_index     ;
                             ;
     beq :+                  ;
                             ;
@@ -97,7 +100,7 @@
     dex
     stx local1              ;       result[1] = index-1;
 
-    stx local7              ;       backward_index = index - 1;
+    stx @backward_index     ;       backward_index = index - 1;
 
     lda #0
     sta local2
@@ -108,13 +111,13 @@
 
                             ; // it's ok, move to next forward index
 
-    ldx local6              ;
+    ldx @forward_index      ;
     inx                     ;   backward_index  = ++forward_index;
-    stx local6              ;
-    stx local7              ;
+    stx @forward_index      ;
+    stx @backward_index     ;
 
 
-    lda local6              ; if (forward_index >= SORTING_DATA_SIZE) {
+    lda @forward_index      ; if (forward_index >= SORTING_DATA_SIZE) {
     cmp #SORTING_DATA_SIZE
     bmi :+
 
@@ -236,7 +239,7 @@ rts
 
 ;; A: index0
 ;; X: index1
-;; clobbers: A,X,Y, local0..local7
+;; clobbers: A,X,Y, local0, local1, local2
 .proc swap
 
 ; tmp = array[index0]
