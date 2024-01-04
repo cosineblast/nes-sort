@@ -147,36 +147,53 @@ generate_numbers:
 
   ;; jmp skip_shuffle
 shuffle:
-  ldy #127
-  sty local0                    ; index = 127
 
-@loop:                               ; do {
-  jsr rng_127                   ; rng1 = rng_127()
+  ; index = 127
+  ldy #127
+  sty local0
+
+  ; do {
+@loop:
+
+  ; rng1 = rng_127()
+  jsr rng_127
   pha
-  jsr rng_127                   ; rng2 = rng_127()
+
+  ; rng2 = rng_127()
+  jsr rng_127
   tax
   pla
   tay
 
-  lda sorting_array, x           ; tmp = sorting_array[rng1]
+  ; tmp = sorting_array[rng1]
+  lda sorting_array, x
   pha
 
-  lda sorting_array, y           ; sorting_array[rng1] = sorting_array[rng2]
+  ; sorting_array[rng1] = sorting_array[rng2]
+  lda sorting_array, y
   sta sorting_array, x
 
-  pla                           ; sorting_array[rng2] = sorting_array[rng1]
+  ; sorting_array[rng2] = sorting_array[rng1]
+  pla
   sta sorting_array, y
 
-  ldy local0                       ; index--
+  ; index--
+  ldy local0
   dey
   sty local0
 
-  bpl @loop                        ; } while (index >= 0)
+  ; } while (index >= 0)
+  bpl @loop
   skip_shuffle:
 
   ;; Update loop
+
 update:
-  @wait_update:                 ; while (!is_updating) {  }
+
+  ; while (true) {
+
+  ; while (!is_updating) {  }
+  @wait_update:
   lda is_updating
   beq @wait_update
 
@@ -201,26 +218,36 @@ update:
   jmp @wait_update
 
 .proc init_stage_update
+  ; if (init_stage_index >= SORTING_DATA_SIZE) {
   lda init_stage_index
   cmp #SORTING_DATA_SIZE
-  bmi :+                        ; if (init_stage_index >= SORTING_DATA_SIZE) {
+  bmi :+
 
+  ; current_sorting_stage = 1;
   lda #1
-  sta current_sorting_stage             ; current_sorting_stage = 1;
+  sta current_sorting_stage
 
-  lda #NO_RENDER_COLUMN         ; render_columns_positions[1] = render_columns_positions[0] = NO_RENDER_COLUMN
+  ; render_columns_positions[0] = NO_RENDER_COLUMN;
+  ; render_columns_positions[1] = NO_RENDER_COLUMN;
+  lda #NO_RENDER_COLUMN
   sta render_columns_positions
   sta render_columns_positions+1
 
-  rts                           ; return;
-:                               ; }
+  ; return;
+  rts
 
   ;; Calculating tiles for array[index] and array[index+1]
   ;; and filling it into render_columns[0:RENDER_COLUMN_HEIGHT]
-  pha                           ; compute_column_tiles(
-  tax                           ;   sorting_array[init_stage_index],
-  lda sorting_array, X          ;   sorting_array[init_stage_index + 1],
-  sta local0                       ;   0);
+
+; compute_column_tiles(
+;   sorting_array[init_stage_index],
+;   sorting_array[init_stage_index + 1],
+;   0);
+
+  pha
+  tax
+  lda sorting_array, X
+  sta local0
 
   lda sorting_array+1, X
   sta local1
@@ -234,16 +261,18 @@ update:
   pla
   tax
 
+ ; compute_column_tiles(
+ ;   sorting_array[init_stage_index+2],
+ ;   sorting_array[init_stage_index+3],
+ ;   RENDER_COLUMN_HEIGHT);
+
   lda sorting_array+2, X
   sta local0
-
   lda sorting_array+3, X
   sta local1
+  lda #RENDER_COLUMN_HEIGHT
+  jsr compute_column_tiles
 
-  lda #RENDER_COLUMN_HEIGHT       ; compute_column_tiles(
-  jsr compute_column_tiles            ;   sorting_array[init_stage_index+2],
-                                ;   sorting_array[init_stage_index+3],
-                                ;   RENDER_COLUMN_HEIGHT);
 
   lda init_stage_index
   lsr A
@@ -252,7 +281,8 @@ update:
   adc #1
   sta render_columns_positions+1
 
-  lda init_stage_index          ; init_stage_index += 4
+  ; init_stage_index += 4
+  lda init_stage_index
   clc
   adc #4
   sta init_stage_index
