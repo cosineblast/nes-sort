@@ -59,6 +59,10 @@ rng_seed: .res 2
 ;; -1 means don't render anything
 render_columns_positions: .res 2
 
+;; The controller input value
+controller_value: .res 8
+
+
 ;; Initial stage variables:
 
 ;; The index of the next two consecutive elements to process
@@ -108,6 +112,7 @@ coroutine_stack_start: .res 256
 .export rng_seed
 .export render_columns_positions
 .export init_stage_index
+.export controller_value
 
 .export coroutine_started
 .export coroutine_s_register

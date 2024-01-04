@@ -27,6 +27,7 @@
 .import rng_seed
 .import render_columns_positions
 .import init_stage_index
+.import controller_value
 
 .import sorting_array
 .import aux_array

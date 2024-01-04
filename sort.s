@@ -13,6 +13,9 @@
 ;; heap_sort.s
 .import heap_sort
 
+;; input.s
+.import get_input
+
 
 .code
 
@@ -20,6 +23,8 @@
 ;;   for scope reasons.
 
 .proc sort_stage_update
+
+  jsr get_input
 
     jsr coroutine_resume  ;    (result, swap_indexes) = coroutine_resume();
 
@@ -38,7 +43,11 @@
                                      ; }
 .endproc
 
+;; TODO: document sorting routine ABI
 .proc sort_array
+
+;; Change 'insertion_sort' here to use other sorting algorithms
+;; (e.g heap_sort)
   jsr insertion_sort
 
   lda #1
