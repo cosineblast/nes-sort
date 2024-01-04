@@ -7,6 +7,12 @@
 .import coroutine_resume
 .import coroutine_yield
 
+;; insertion_sort.s
+.import insertion_sort
+
+;; heap_sort.s
+.import heap_sort
+
 
 .code
 
@@ -42,210 +48,6 @@
   jmp @UB
 .endproc
 
-  ;; The is the index of the element that is being inserted
-  ;; by the current insertion of the sort
-  ; local6 = forward_index
-
-  ;; This is the index of the element that we are comparing against
-  ;; in the current insertion of the insertion sort
-  ; local7 = backward_index (also known as just "index")
-
-  ;; Insertion routine:
-  ;; the backward index refers to the index of the element being inserted right now, the
-  ;; forward refers to the original index of that element before its insertion.
-  ;;
-  ;; This routine is intended to be called as a coroutine, and it does not return,
-  ;; it yields through coroutine_yield
-  ;;
-  ;; Arguments: None
-  ;;
-  ;; yields:
-  ;; local2: 1 if this was a final yield, 0 otherwise
-  ;; local0, local1: The indexes of the two values that were swapped
-  ;;   (if nonfinal yield)
-  ;; Clobbers: specified by coroutine_yield
-
-.proc insertion_sort
-
-@forward_index = local6
-@backward_index = local7
-
-    lda #1
-    sta @forward_index      ; forward_index = 1;
-    sta @backward_index     ; backward_index = 1;
-
-    @full_loop:             ; while (true) {
-
-    @insert_loop:           ;   while (index != 0 && sorting_array[index] < sorting_array[index-1]) {
-                            ;
-    ldx @backward_index     ;
-                            ;
-    beq :+                  ;
-                            ;
-    lda sorting_array-1, x  ;
-    sta local0              ;
-                            ;
-    lda sorting_array, x    ;
-    sta local1              ;
-                            ;
-    cmp local0              ;
-    bpl :+                  ;
-
-    ; swap(index, index - 1)
-    txa
-    dex
-    jsr swap
-    dec @backward_index
-
-    jmp @insert_loop        ;     }
-:
-
-                            ; // it's ok, move to next forward index
-
-    ldx @forward_index      ;
-    inx                     ;   backward_index  = ++forward_index;
-    stx @forward_index      ;
-    stx @backward_index     ;
-
-
-    lda @forward_index      ; if (forward_index >= SORTING_DATA_SIZE) {
-    cmp #SORTING_DATA_SIZE
-    bmi :+
-
-    rts                     ; return;
-:                           ; }
-
-    jmp @full_loop          ;}
-
-.endproc
-
-
-.proc heap_sort
-  lda #SORTING_DATA_SIZE
-  lsr
-
-@loop:
-  ldx #SORTING_DATA_SIZE
-  pha
-  jsr sift_down
-  pla
-
-  sec
-  sbc #1
-  bpl @loop
-
-  rts
-.endproc
-
-;; arguments:
-;; A: index
-;; X: size
-.proc sift_down
-@index = local0
-@size = local1
-@left_index = local2
-@right_index = local3
-@left_value = local4
-
-  sta @index
-  stx @size
-
-@loop:
-
-  ; if (index >= size / 2) { break; }
-  lda @size
-  lsr
-  cmp @index
-  beq @end_loop
-  bcc @end_loop
-
- ; left_index = (index << 1) + 1;
- ; right_index = (index << 1) + 2;
-  lda @index
-  asl
-  tax
-  inx
-  stx @left_index
-  inx
-  stx @right_index
-
- ; left_value = sorting_array[left_index]
-  ldx @left_index
-  lda sorting_array, x
-  sta @left_value
-
-  ; if (right_index == size) {
-  lda @right_index
-  cmp @size
-  bne @two_children
-
-  ; if (left_value > value) {
-  ldx @index
-  lda sorting_array, x
-  cmp @left_value
-  bcs @end_loop
-
-  ; swap(index, left_index)
-  lda @index
-  ldx @left_index
-  jsr swap
-
-  ; } break;
-  jmp @end_loop
-
- ; } else
-@two_children:
-
-; u8 max_index =
-;   right_value >= left_value
-;     ? right_index : left_index;
-  ldy @left_index
-
-  ldx @right_index
-  lda sorting_array, x
-  cmp @left_value
-  bcc :+
-  ldy @right_index
-  :
-
-;; // reassign registers
-@max_value = @left_index
-
-  ; max_value = sorting_array[max_index]
-  lda sorting_array, y
-  sta @max_value
-
-  ; if (value < max_value) {
-  ldx @index
-  lda sorting_array, x
-  cmp @max_value
-  bcs @end_loop
-
-  ; swap(max_index, index)
-
-  ; // @push(size); @push(max_index)
-  lda @size
-  pha
-  tya
-  pha
-
-  tya
-  ldx @index
-  jsr swap
-
-  ; // @pop(max_index); @pop(size)
-  pla
-  sta @index
-  pla
-  sta @size
-
-  jmp @loop
-
-@end_loop:
-rts
-
-.endproc
-
 ;; A: index0
 ;; X: index1
 ;; clobbers: A,X,Y, local0, local1, local2
@@ -275,5 +77,6 @@ rts
 
 
 .export coroutine_start_location = sort_array
+.export swap
 .export sort_stage_update
 
