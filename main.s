@@ -1,4 +1,4 @@
-.include "PPU.s"
+.include "IO_REGISTERS.s"
 
 .segment "HEADER"
     .byte $4E, $45, $53, $1A    ; Header
