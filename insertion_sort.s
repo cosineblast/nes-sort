@@ -6,28 +6,6 @@
 
 .code
 
-  ;; The is the index of the element that is being inserted
-  ;; by the current insertion of the sort
-
-  ;; This is the index of the element that we are comparing against
-  ;; in the current insertion of the insertion sort
-  ; local7 = backward_index (also known as just "index")
-
-  ;; Insertion routine:
-  ;; the backward index refers to the index of the element being inserted right now, the
-  ;; forward refers to the original index of that element before its insertion.
-  ;;
-  ;; This routine is intended to be called as a coroutine, and it does not return,
-  ;; it yields through coroutine_yield
-  ;;
-  ;; Arguments: None
-  ;;
-  ;; yields:
-  ;; local2: 1 if this was a final yield, 0 otherwise
-  ;; local0, local1: The indexes of the two values that were swapped
-  ;;   (if nonfinal yield)
-  ;; Clobbers: specified by coroutine_yield
-
 .proc insertion_sort
 
 @forward_index = local6
