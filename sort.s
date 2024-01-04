@@ -119,6 +119,24 @@
 
 .endproc
 
+
+.proc heap_sort
+  lda #SORTING_DATA_SIZE
+  lsr
+
+@loop:
+  ldx #SORTING_DATA_SIZE
+  pha
+  jsr sift_down
+  pla
+
+  sec
+  sbc #1
+  bpl @loop
+
+  rts
+.endproc
+
 ;; arguments:
 ;; A: index
 ;; X: size
@@ -144,7 +162,7 @@
  ; left_index = (index << 1) + 1;
  ; right_index = (index << 1) + 2;
   lda @index
-  asl @index
+  asl
   tax
   inx
   stx @left_index
