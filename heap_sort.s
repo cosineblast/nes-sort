@@ -7,19 +7,50 @@
 .code
 
 .proc heap_sort
-  lda #SORTING_DATA_SIZE
-  lsr
+  jsr heapify
+
+  ldx #SORTING_DATA_SIZE-1
 
 @loop:
+  txa
+  pha
+  lda #0
+  jsr swap
+  pla
+  tax
+
+  pha
+  lda #0
+  jsr sift_down
+  pla
+  tax
+  dex
+  bpl @loop
+
+  rts
+.endproc
+
+.proc heapify
+  ; do {
+  ; index = SORTING_DATA_SIZE / 2;
+  lda #SORTING_DATA_SIZE / 2
+
+@loop:
+  ; sift_down(index, SORTING_DATA_SIZE);
   ldx #SORTING_DATA_SIZE
   pha
   jsr sift_down
   pla
 
+  ; index -= 1;
   sec
   sbc #1
+
+  ; } while (index >= 0);
   bpl @loop
 
+
+  ; return;
   rts
 .endproc
 
