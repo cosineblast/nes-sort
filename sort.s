@@ -91,20 +91,11 @@
     cmp local0              ;
     bpl :+                  ;
 
-    lda local0              ;       swap_array(index, index-1);
-    sta sorting_array, x
-    lda local1
-    sta sorting_array-1, x
-
-    stx local0              ;       result[0] = index;
+    ; swap(index, index - 1)
+    txa
     dex
-    stx local1              ;       result[1] = index-1;
-
-    stx @backward_index     ;       backward_index = index - 1;
-
-    lda #0
-    sta local2
-    jsr coroutine_yield     ;       yield 0
+    jsr swap
+    dec @backward_index
 
     jmp @insert_loop        ;     }
 :
@@ -255,11 +246,12 @@ rts
   lda local0
   sta sorting_array, y
 
+
   stx local0
   sty local1
   lda #0
   sta local2
-  jsr coroutine_yield
+  jmp coroutine_yield
 .endproc
 
 
