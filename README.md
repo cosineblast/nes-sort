@@ -12,13 +12,15 @@ Supported Algorithms:
 
 ## building the project
 
-After installing [cc65](https://cc65.github.io/),
-running `make` will generate nes ROM in `build/sort.nes`.
+The projects requires [cc65](https://cc65.github.io/) and [pydoit](https://pydoit.org/)
+for the build process.
+
+To build the project, run `doit`, which will generate the ROM at `build/sort.nes`.
 
 ### building with nix
 
-If you have nix installed (and flakes enabled) , you can use `nix develop` to quickly setup
-with the development tools.
+If you have nix installed (and flakes enabled) , you can use `nix develop` to
+setup the development tools.
 
 ### running the project
 

@@ -14,6 +14,7 @@
           pkgs.mkShell {
             nativeBuildInputs = [
               pkgs.cc65
+              pkgs.doit
             ];
           };
       });

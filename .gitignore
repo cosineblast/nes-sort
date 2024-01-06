@@ -6,3 +6,5 @@ tmp/
 
 *.o
 build
+__pycache__
+.doit.db
