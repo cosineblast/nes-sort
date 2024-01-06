@@ -7,6 +7,7 @@
 rom: build/sort.nes
 
 build/sort.nes: *.s linker_config.cfg Makefile
+	mkdir -p build
 	cl65 main.s \
 		init_stage.s \
 		columns.s rng.s \
