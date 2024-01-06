@@ -1,5 +1,4 @@
 (ns gen.core
-  (:require [clojure.core.typed :as t])
   (:import [java.io File FileOutputStream]))
 
 (defn todo [] (throw (RuntimeException. "todo")))
@@ -43,3 +42,5 @@
     (with-open [file (->> "pattern-table.bin" File. FileOutputStream.)]
       (doseq [byte (flatten pattern-table)]
         (.write file (int byte))))))
+
+(-main)
