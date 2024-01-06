@@ -71,20 +71,20 @@ Currently implemented algoriths (and their respective symbols) are `insertion_so
 The array is actually twice the size of the renderable screen,
 so one can change the rendered portion of the screen using the controller.
 
-# Acknowledgements
+# acknowledgements
 
 - Ryan (aka [NESHacker](https://www.youtube.com/@NesHacker)) for his incredible content.
 - The [NESDev wiki](https://www.nesdev.org/wiki/Nesdev_Wiki) for their wonderful, wonderful resources.
 - cc65 for the awesome tools.
 
-# License
+# license
 
 The project is licensed under the 0BSD clause:
 
-```
-Copyright (C) 2024 by Renan Ribeiro <renan.ribeiro.7331@gmail.com>
 
-Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
+> Copyright (C) 2024 by Renan Ribeiro <renan.ribeiro.7331@gmail.com>
+> 
+> Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
+> 
+> THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-```
