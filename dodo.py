@@ -1,6 +1,11 @@
 import os
+from pathlib import Path
 
-DOIT_CONFIG = {"default_tasks": ["compile"]}
+from doit.tools import create_folder
+
+DOIT_CONFIG = {"default_tasks": ["compile_rom"]}
+mkdir = (create_folder, ['build'])
+
 
 SOURCES = [
     "src/main.s",
@@ -15,13 +20,30 @@ SOURCES = [
     "src/input.s",
 ]
 
-def task_compile():
-    sources = ' '.join(SOURCES)
+def output_name(source):
+    # 'src/main.s' -> 'build/main.o'
+    return Path('build') / (Path(source).stem + '.o')
 
+def task_compile_asm():
+    """Compile assembly source files to object files"""
+    for source in SOURCES:
+        output = output_name(source)
+        yield {
+                'name': f'{source}',
+                'file_dep': [source],
+                'targets': [output],
+                'actions': [mkdir,
+                            f'ca65 {source} -o {output}'],
+                'verbosity': 2
+
+        }
+
+
+def task_compile_rom():
+    """Compile iNES ROM"""
     return {
-        'targets': ['build/sort.nes'],
-        'actions': [
-            lambda targets: os.makedirs('build/', exist_ok=True),
-            f"cl65 {sources} --config linker_config.cfg -o build/sort.nes --target nes --verbose" ]
+            'file_dep': [output_name(source) for source in SOURCES],
+            'targets': ['build/sort.nes'],
+            'actions': [f'ld65 %(dependencies)s -o %(targets)s --config linker_config.cfg']
     }
 
