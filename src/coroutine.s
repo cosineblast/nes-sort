@@ -45,13 +45,25 @@
 ;; helper macros
 
 ;; Swaps the 6502 stack ($0100..$01FF) with the
-;; coroutine_stack.
+;; coroutine_stack. It does not copy the entire
+;; stack, but only the portions apparently used
+;; (by either the S register or coroutine_s_register)
 ;; Clobbers: A, X, Y
 .macro swap_stacks
-; to do: don't copy entire stack, copy only the stack used
-; up to the stack registers.
 
-ldx #$00                      ; i = 0
+; i = S;
+; if (S >= coroutine_s_register) {
+tsx
+txa
+cmp coroutine_s_register
+bcc :+
+
+; i = coroutine_s_register;
+ldx coroutine_s_register
+
+; }
+:
+
 @stack_copy_loop:             ; do {
   lda stack_start, x          ;
   ldy coroutine_stack_start, x;   @swap(&stack[i], &coroutine_stack[i])
