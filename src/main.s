@@ -84,3 +84,4 @@ nmi_handler:
 .segment "CHARS"
 
 .incbin "pattern-table.bin"
+.incbin "alphabet-table.bin"
