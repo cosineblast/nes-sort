@@ -22,6 +22,9 @@
   .import RootScene_main
   .import RootScene_render
 
+  .import MenuScene_main
+  .import MenuScene_render
+
 on_reset:
   sei		; disable IRQs
   cld		; disable decimal mode
@@ -62,7 +65,7 @@ vblankwait2:
 main:
   lda #1                      ; Begin first update
   sta is_updating
-  jmp RootScene_main
+  jmp MenuScene_main
 
 nmi_handler:
   php
@@ -74,7 +77,7 @@ nmi_handler:
   plp
   rti                           ; return
 :                               ; }
-  jsr RootScene_render
+  jsr MenuScene_render
 
   pla
   plp

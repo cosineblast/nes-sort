@@ -188,8 +188,8 @@ RootScene_render:
   jsr init_stage_render      ;      init_stage_render();
   jmp @end                   ; }
 
-@is_sort:                       ; else if (sortin_stage == 1) {
-  jsr sort_stage_render         ;   current_sorting_stage_render();
+@is_sort:                       ; else if (current_sorting_stage == 1) {
+  jsr sort_stage_render         ;   sort_stage_render();
 @end:                           ; }
 
   lda #1                        ; is_updating = 1
