@@ -37,7 +37,7 @@ I do however consider implementing non performance critical portions of it in an
 either with `cc65`'s compiler, or [llvm-mos](`https://llvm-mos.org/wiki/Welcome`), since
 I like the generated 6502 code.
 
-The ROM's pattern table is generated with the script `gen.clj`, and are designed so
+The ROM's pattern table is generated with the script `gen.py`, and are designed so
 that each 8-bit column represents two values (which go up to 128), so there are
 4 * 4 = 16 possible tiles.
 

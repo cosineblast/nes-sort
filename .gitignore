@@ -8,3 +8,4 @@ tmp/
 build
 __pycache__
 .doit.db
+env
