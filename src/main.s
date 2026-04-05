@@ -1,4 +1,8 @@
+;; Note: includes must always be followed by segment directives
+;; since includes may include their own segment directives
+
 .include "IO_REGISTERS.s"
+.include "vars_h.s"
 
 .segment "HEADER"
     .byte $4E, $45, $53, $1A    ; Header
@@ -13,18 +17,10 @@
     .addr on_reset
     .addr 0
 
-  .include "vars_h.s"
 
 .segment "CODE"
-
-
-  .import rng
-  .import rng_127
-
-  .import sort_stage_update
-  .import init_stage_update
-  .import init_stage_render
-  .import sort_stage_render
+  .import RootScene_main
+  .import RootScene_on_nmi
 
 on_reset:
   sei		; disable IRQs
@@ -64,204 +60,10 @@ vblankwait2:
   bpl vblankwait2
 
 main:
-  ;; Changing palette colors
-  bit PPUSTATUS
+  jmp RootScene_main
 
-  lda #$3f
-  sta PPUADDR
-
-  lda #0
-  sta PPUADDR
-
-  lda #$0f
-  sta PPUDATA
-
-  lda #$20
-  sta PPUDATA
-
-  ;; Pallete Escape Hack
-  lda #$3F
-  sta PPUADDR
-  lda #$0
-  sta PPUADDR
-  sta PPUADDR
-  sta PPUADDR
-
-  lda #%10000100                ; Enable NMI, PPUDATA writes increment downard
-  sta ppuctrl_value
-  sta PPUCTRL
-
-  lda #%00001010                ; Enable background and leftmost column
-  sta PPUMASK
-
-  ;; First Update
-  lda #1                      ; Begin first update
-  sta is_updating
-
-generate_numbers:
-
-  lda #231                      ; setting rng_seed
-  sta rng_seed
-
-  lda #$ff
-  sta rng_seed+1
-
-
-  ;; Initialize array
-  ;; 0..100 is initalized with 0..100
-  ;; 101..127 is initalized with 1..7
-
-  ; for (i8 i = 100; i >= 0;  i--) {
-  ldx #100
-@loop:
-
-  ; sorting_array[i] = i
-  txa
-  sta sorting_array, x
-
-  ; }
-  dex
-  bpl @loop
-
-  ; j = 0
-  ; for (i = 101; i != 127; i++) {
-  ldx #101
-  ldy #0
-@loop2:
-
-  ; sorting_array[i] = j
-  tya
-  sta sorting_array, x
-
-  ; j += 4
-  iny
-  iny
-  iny
-  iny
-
-  ; i += 1
-  inx
-  txa
-
-  cmp #127
-  bne @loop2
-  ; }
-
-
-
-  ;; jmp skip_shuffle
-shuffle:
-
-  ; index = 127
-  ldy #127
-  sty local0
-
-  ; do {
-@loop:
-
-  ; rng1 = rng_127()
-  jsr rng_127
-  pha
-
-  ; rng2 = rng_127()
-  jsr rng_127
-  tax
-  pla
-  tay
-
-  ; tmp = sorting_array[rng1]
-  lda sorting_array, x
-  pha
-
-  ; sorting_array[rng1] = sorting_array[rng2]
-  lda sorting_array, y
-  sta sorting_array, x
-
-  ; sorting_array[rng2] = sorting_array[rng1]
-  pla
-  sta sorting_array, y
-
-  ; index--
-  ldy local0
-  dey
-  sty local0
-
-  ; } while (index >= 0)
-  bpl @loop
-  skip_shuffle:
-
-  ;; Update loop
-
-update:
-
-  ; while (true) {
-
-  ; while (!is_updating) {  }
-  @wait_update:
-  lda is_updating
-  beq @wait_update
-
-  ; if (current_sorting_stage == 0) {
-  ;   init_stage_update()
-  ; }
-  ; else {
-  ;   sort_stage_update()
-  ; }
-  lda current_sorting_stage
-  beq @is_init
-  cmp #PROGRAM_STAGE_SORT
-  beq @is_sort
-  jmp @end
-
-  @is_init:
-  jsr init_stage_update
-  jmp @end
-  @is_sort:
-  jsr sort_stage_update
-  @end:
-
-  ; is_updating = 0
-  lda #0
-  sta is_updating
-
-  ; }
-  jmp @wait_update
-
-  ;; Render routine
 on_nmi:
-  php
-  pha
-
-  lda is_updating               ; if (is_updating) {
-  beq :+
-  pla
-  plp
-  rti                           ; return
-:                               ; }
-
-  lda current_sorting_stage
-  beq @is_init
-  cmp #1
-  beq @is_sort
-  jmp @end
-
-@is_init:                    ; if (current_sorting_stage == 0) {
-  jsr init_stage_render      ;      init_stage_render();
-  jmp @end                   ; }
-
-@is_sort:                       ; else if (sortin_stage == 1) {
-  jsr sort_stage_render         ;   current_sorting_stage_render();
-@end:                           ; }
-
-  lda #1                        ; is_updating = 1
-  sta is_updating
-
-  pla
-  plp
-
-  rti                           ; return;
-
-
+  jmp RootScene_on_nmi
 
 
 .segment "CHARS"

@@ -9,6 +9,7 @@ mkdir = (create_folder, ['build'])
 
 SOURCES = [
     "src/main.s",
+    "src/RootScene.s",
     "src/init_stage.s",
     "src/columns.s",
     "src/rng.s",
