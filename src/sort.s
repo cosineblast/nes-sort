@@ -1,4 +1,5 @@
 .include "vars_h.s"
+.include "IO_REGISTERS.s"
 
 ;; column.s
 .import notify_update
@@ -120,9 +121,37 @@
   jmp coroutine_yield
 .endproc
 
+.proc sort_stage_render
+
+.import render_columns_from_positions
+  jsr render_columns_from_positions
+
+  bit PPUSTATUS
+
+  ;; we reset PPUCTRL, because after touching
+  ;; ppuaddr, the base namespace gets modified.
+  lda ppuctrl_value
+  sta PPUCTRL
+  sta ppuctrl_value
+
+  ; set_PPUSCROLL(array_scroll_offset * 4);
+  bit PPUSTATUS
+  lda array_scroll_offset
+  asl A
+  asl A
+  sta PPUSCROLL
+
+  ; set_PPUSCROLL(224);
+  lda #224
+  sta PPUSCROLL
+
+  rts
+
+.endproc
 
 
 .export coroutine_start_location = sort_array
 .export swap
 .export sort_stage_update
+.export sort_stage_render
 
