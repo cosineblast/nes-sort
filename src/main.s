@@ -13,14 +13,14 @@
 .segment "STARTUP"
 .segment "VECTORS"
     ;; NMI Handler, Reset Handler, IRQ Handler
-    .addr on_nmi
+    .addr nmi_handler
     .addr on_reset
     .addr 0
 
 
-.segment "CODE"
+  .segment "CODE"
   .import RootScene_main
-  .import RootScene_on_nmi
+  .import RootScene_render
 
 on_reset:
   sei		; disable IRQs
@@ -60,10 +60,25 @@ vblankwait2:
   bpl vblankwait2
 
 main:
+  lda #1                      ; Begin first update
+  sta is_updating
   jmp RootScene_main
 
-on_nmi:
-  jmp RootScene_on_nmi
+nmi_handler:
+  php
+  pha
+
+  lda is_updating               ; if (is_updating) {
+  beq :+
+  pla
+  plp
+  rti                           ; return
+:                               ; }
+  jsr RootScene_render
+
+  pla
+  plp
+  rti
 
 
 .segment "CHARS"

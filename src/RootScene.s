@@ -6,7 +6,7 @@
 .segment "CODE"
 
 .export RootScene_main
-.export RootScene_on_nmi
+.export RootScene_render
 
   .import rng
   .import rng_127
@@ -47,10 +47,6 @@ RootScene_main:
 
   lda #%00001010                ; Enable background and leftmost column
   sta PPUMASK
-
-  ;; First Update
-  lda #1                      ; Begin first update
-  sta is_updating
 
 generate_numbers:
 
@@ -181,17 +177,7 @@ update:
   ; }
   jmp @wait_update
 
-RootScene_on_nmi:
-  php
-  pha
-
-  lda is_updating               ; if (is_updating) {
-  beq :+
-  pla
-  plp
-  rti                           ; return
-:                               ; }
-
+RootScene_render:
   lda current_sorting_stage
   beq @is_init
   cmp #1
@@ -209,8 +195,5 @@ RootScene_on_nmi:
   lda #1                        ; is_updating = 1
   sta is_updating
 
-  pla
-  plp
-
-  rti                           ; return;
+  rts                           ; return;
 

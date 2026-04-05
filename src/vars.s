@@ -63,6 +63,8 @@ render_columns_positions: .res 2
 controller_value: .res 8
 
 ;; The current value stored in PPUCTRL
+;; we store this in a special variable since
+;; PPUCTRL is a special memory mapped IO address
 ppuctrl_value: .res 1
 
 ;; The index of the array element
