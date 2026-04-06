@@ -20,11 +20,37 @@ title_data:
   ;; "NESORT 1.0"
   .byte $26, $1D, $2B, $27, $2A, $2C, $00, $33, $3D, $34
 
-;; stack top: address to read
-;; X: length
-.proc string_to_table_index
+insertion_sort_string:
+  ;; "INSERTION SORT"
+  .byte $21, $26, $2B, $1D, $2A, $2C, $21, $27, $26, $00, $2B, $27, $2A, $2C
 
-.endproc
+heap_sort_string:
+  ;; "HEAP SORT"
+  .byte $20, $1D, $19, $28, $00, $2B, $27, $2A, $2C
+
+
+;; TODO: rewrite as a procedure
+;; X, Y: ppu addr
+.macro write_static_str straddr, len
+  jsr ppuctrl_write_to_right
+
+  bit PPUSTATUS
+  txa
+  sta PPUADDR
+  tya
+  sta PPUADDR
+
+  bit PPUSTATUS
+
+  ldx #00      ; i = 0
+  ldy #len     ; j = 10
+:             ; do {
+  lda straddr, x
+  sta PPUDATA ; write_PPUDATA(title_data[i])
+  inx    ; i ++
+  dey    ; i --
+  bne :- ; } while (j != 0)
+.endmacro
   
 MenuScene_main:
   jsr reset_colors
@@ -45,29 +71,17 @@ MenuScene_main:
   ldy #$1E 
   jsr write_column
 
-  bit PPUSTATUS
-  lda #00
-  sta ppuctrl_value
-  sta PPUCTRL ;; writes go rightward
-  
-  bit PPUSTATUS
-  lda #$22
-  sta PPUADDR
-  lda #$CB
-  sta PPUADDR
+  ldx #$22
+  ldy #$CB
+  write_static_str title_data, 10
 
-  bit PPUSTATUS
+  ldx #$20
+  ldy #$A6
+  write_static_str insertion_sort_string, 14
 
-  ldx #00     ; i = 0
-  ldy #10     ; j = 10
-:             ; do {
-  lda title_data, x
-  sta PPUDATA ; write_PPUDATA(title_data[i])
-  inx    ; i ++
-  dey    ; i --
-  bne :- ; } while (j != 0)
-
-  
+  ldx #$20
+  ldy #$C6
+  write_static_str heap_sort_string, 9
 
   bit PPUSTATUS
   lda #00
@@ -119,10 +133,7 @@ MenuScene_render:
 
 ;; base PPUADDR address: X..Y
 write_line:
-  bit PPUSTATUS
-  lda #00
-  sta ppuctrl_value
-  sta PPUCTRL ;; writes go rightward
+  jsr ppuctrl_write_to_right
 
   bit PPUSTATUS
   txa 
@@ -161,3 +172,11 @@ write_column:
   dex         ; i--
   bne :- ; } while (i != 0)
   rts
+
+.proc ppuctrl_write_to_right
+  bit PPUSTATUS
+  lda #00
+  sta ppuctrl_value
+  sta PPUCTRL 
+  rts
+.endproc
