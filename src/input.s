@@ -4,6 +4,8 @@
 
 .code
 
+;; TODO: document this
+;; TODO: use local0 instead of controller_value
 .proc get_input
 
   lda #1

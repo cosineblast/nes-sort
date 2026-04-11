@@ -24,6 +24,7 @@
 
 .import is_updating
 .import current_sorting_stage
+ MenuScene_selected_sort = current_sorting_stage
 .import rng_seed
 .import render_columns_positions
 .import init_stage_index

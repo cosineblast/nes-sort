@@ -47,9 +47,12 @@ render_columns: .res (2 * RENDER_COLUMN_HEIGHT)
 ;; 1 if update code is/should be running (NMI code should rti immediately)
 is_updating: .res 1
 
+;; in sorting scene:
 ;; 0 when the program is doing the initial render of the tiles
 ;; 1 when the program is already rendering the algorithm steps
 ;; 2 when the program is done with the algorithm
+;; 
+;; in menu scene:
 current_sorting_stage: .res 1
 
 ;; The rng_seed for the random number generation

@@ -17,6 +17,8 @@
   .import init_stage_render
   .import sort_stage_render
 
+  .import get_input
+
 title_data:
   ;; "NESORT 1.0"
   .byte $26, $1D, $2B, $27, $2A, $2C, $00, $33, $3D, $34
@@ -100,12 +102,82 @@ MenuScene_init:
   sta ppuctrl_value
   sta PPUCTRL
 
+  lda #$00
+  sta MenuScene_selected_sort
   rts
 
 .proc MenuScene_update
+
+  jsr get_input ;; input = get_input()
+  lda controller_value
+
+  and #%00000100
+  beq @not_down ;; if (input & JOY_DOWN != 0) {
+
+  lda MenuScene_selected_sort
+  cmp #1
+  beq @not_down ;; if (selected_sort != 1) {
+
+  inc MenuScene_selected_sort ;; selected_sort += 1
+
+  @not_down: ;; } }
+  
+  lda controller_value
+
+  and #%00001000
+  beq @not_up ;; if (input & JOY_UP != 0) {
+
+  lda MenuScene_selected_sort
+  beq @not_up ;; if (selected_sort != 0) {
+
+  dec MenuScene_selected_sort ;; selected_sort -= 1
+
+  @not_up: ;; }
+  
   rts
 .endproc
+
 .proc MenuScene_render
+  jsr ppuctrl_write_downard ;; set_PPUCTRL_write_downards();
+
+  ldx #00 ;; option_index = 0;
+
+  bit PPUSTATUS
+  lda #$20
+  sta PPUADDR
+  lda #$A4
+  sta PPUADDR ;; set_PPUADDR(0x20, 0xA4)
+
+@loop: 
+  txa
+  cmp #2
+  beq @loop_end  ;; while (option_index != SORTING_ALOGIRTHM_COUNT) {  
+  
+  txa
+  cmp MenuScene_selected_sort
+  bne :+ ;;   if (option_index == selected_algorithm_index) {
+
+  bit PPUSTATUS
+  lda #$3E
+  sta PPUDATA ;;     set_PPUDATA(RIGHT_ARROW_TILE)
+  jmp :++
+   :  ;;   } else {
+
+  bit PPUSTATUS
+  lda #00
+  sta PPUDATA ;;     set_PPUDATA(EMPTY_TILE)
+  : ;;   }
+
+  inx ;; option_index += 1
+  jmp @loop ;; }
+@loop_end:
+
+  bit PPUSTATUS
+  lda #00
+  sta PPUSCROLL
+  lda #224
+  sta PPUSCROLL ;; set_PPUSCROLL(0x00E0)
+  
   rts                           ; return;
 .endproc
 
@@ -156,10 +228,7 @@ write_line:
 
 ;; base PPUADDR address: X..Y
 write_column:
-  bit PPUSTATUS
-  lda #%00000100 ; // PPUDATA increments downward
-  sta ppuctrl_value
-  sta PPUCTRL
+  jsr ppuctrl_write_downard
 
   bit PPUSTATUS
   txa
@@ -178,9 +247,19 @@ write_column:
   rts
 
 .proc ppuctrl_write_to_right
+  lda ppuctrl_value
+  and #%11111011
   bit PPUSTATUS
-  lda #00
-  sta ppuctrl_value
   sta PPUCTRL 
+  sta ppuctrl_value
+  rts
+.endproc
+
+.proc ppuctrl_write_downard
+  lda ppuctrl_value
+  ora #%00000100
+  bit PPUSTATUS
+  sta PPUCTRL
+  sta ppuctrl_value
   rts
 .endproc
