@@ -5,7 +5,8 @@
 
 .segment "CODE"
 
-.export RootScene_main
+.export RootScene_init
+.export RootScene_update
 .export RootScene_render
 
   .import rng
@@ -17,7 +18,7 @@
   .import sort_stage_render
 
 
-RootScene_main:
+RootScene_init:
   ;; Changing palette colors
   bit PPUSTATUS
 
@@ -140,17 +141,9 @@ shuffle:
   bpl @loop
   skip_shuffle:
 
-  ;; Update loop
+  rts
 
-update:
-
-  ; while (true) {
-
-  ; while (!is_updating) {  }
-  @wait_update:
-  lda is_updating
-  beq @wait_update
-
+.proc RootScene_update
   ; if (current_sorting_stage == 0) {
   ;   init_stage_update()
   ; }
@@ -170,14 +163,10 @@ update:
   jsr sort_stage_update
   @end:
 
-  ; is_updating = 0
-  lda #0
-  sta is_updating
+  rts
+.endproc
 
-  ; }
-  jmp @wait_update
-
-RootScene_render:
+.proc RootScene_render
   lda current_sorting_stage
   beq @is_init
   cmp #1
@@ -192,8 +181,5 @@ RootScene_render:
   jsr sort_stage_render         ;   sort_stage_render();
 @end:                           ; }
 
-  lda #1                        ; is_updating = 1
-  sta is_updating
-
   rts                           ; return;
-
+.endproc

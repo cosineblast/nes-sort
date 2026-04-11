@@ -5,7 +5,8 @@
 
 .segment "CODE"
 
-.export MenuScene_main
+.export MenuScene_init
+.export MenuScene_update
 .export MenuScene_render
 
   .import rng
@@ -52,7 +53,7 @@ heap_sort_string:
   bne :- ; } while (j != 0)
 .endmacro
   
-MenuScene_main:
+MenuScene_init:
   jsr reset_colors
 
   ldx #$20
@@ -99,11 +100,14 @@ MenuScene_main:
   sta ppuctrl_value
   sta PPUCTRL
 
-halt:
-  jmp halt ; while (1) { }
+  rts
 
-MenuScene_render:
+.proc MenuScene_update
+  rts
+.endproc
+.proc MenuScene_render
   rts                           ; return;
+.endproc
 
 
 .proc reset_colors

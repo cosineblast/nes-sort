@@ -19,11 +19,18 @@
 
 
   .segment "CODE"
-  .import RootScene_main
+  .import RootScene_init
+  .import RootScene_update
   .import RootScene_render
 
-  .import MenuScene_main
+  .import MenuScene_init
+  .import MenuScene_update
   .import MenuScene_render
+
+;; Change here to set initial scene
+  SCENE_INIT = MenuScene_init
+  SCENE_UPDATE = MenuScene_update
+  SCENE_RENDER = MenuScene_render
 
 on_reset:
   sei		; disable IRQs
@@ -65,7 +72,22 @@ vblankwait2:
 main:
   lda #1                      ; Begin first update
   sta is_updating
-  jmp MenuScene_main
+
+  jsr SCENE_INIT
+
+update: ;; while (true) {
+
+  ; while (!is_updating) {  }
+  @wait_update:
+  lda is_updating
+  beq @wait_update
+
+  jsr SCENE_UPDATE
+
+  lda #0
+  sta is_updating;; is_updating = 0
+
+  jmp update ; } // while (true)
 
 nmi_handler:
   php
@@ -77,7 +99,10 @@ nmi_handler:
   plp
   rti                           ; return
 :                               ; }
-  jsr MenuScene_render
+  jsr SCENE_RENDER
+
+  lda #1
+  sta is_updating
 
   pla
   plp
