@@ -7,7 +7,7 @@
 
 .code
 
-.proc SortInitScene_update
+.proc SortSetupScene_update
 
   ; if (init_stage_index >= SORTING_DATA_SIZE) {
   lda init_stage_index
@@ -87,7 +87,8 @@
   rts
 .endproc
 
-.proc SortInitScene_render
+.proc SortSetupScene_render
+
   jsr render_columns_from_positions
 
   bit PPUSTATUS
@@ -102,5 +103,5 @@
 .endproc
 
 
-.export init_stage_update
-.export init_stage_render
+.export SortSetupScene_update
+.export SortSetupScene_render

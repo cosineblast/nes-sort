@@ -25,7 +25,7 @@
 ;; .exports are at the bottom of the file
 ;;   for scope reasons.
 
-.proc sort_stage_update
+.proc SortScene_update
 
   jsr handle_input
 
@@ -121,7 +121,7 @@
   jmp coroutine_yield
 .endproc
 
-.proc sort_stage_render
+.proc SortScene_render
 
 .import render_columns_from_positions
   jsr render_columns_from_positions
@@ -152,6 +152,6 @@
 
 .export coroutine_start_location = sort_array
 .export swap
-.export sort_stage_update
-.export sort_stage_render
+.export SortScene_update
+.export SortScene_render
 

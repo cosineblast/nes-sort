@@ -12,10 +12,10 @@
   .import rng
   .import rng_127
 
-  .import sort_stage_update
-  .import init_stage_update
-  .import init_stage_render
-  .import sort_stage_render
+  .import SortSetupScene_update
+  .import SortSetupScene_render
+  .import SortScene_update
+  .import SortScene_render
 
 
 RootScene_init:
@@ -145,10 +145,10 @@ shuffle:
 
 .proc RootScene_update
   ; if (current_sorting_stage == 0) {
-  ;   init_stage_update()
+  ;   SortSetupScene_update()
   ; }
   ; else {
-  ;   sort_stage_update()
+  ;   SortScene_update()
   ; }
   lda current_sorting_stage
   beq @is_init
@@ -157,10 +157,10 @@ shuffle:
   jmp @end
 
   @is_init:
-  jsr init_stage_update
+  jsr SortSetupScene_update
   jmp @end
   @is_sort:
-  jsr sort_stage_update
+  jsr SortScene_update
   @end:
 
   rts
@@ -174,11 +174,11 @@ shuffle:
   jmp @end
 
 @is_init:                    ; if (current_sorting_stage == 0) {
-  jsr init_stage_render      ;      init_stage_render();
+  jsr SortSetupScene_render      ;      SortSetupScene_render();
   jmp @end                   ; }
 
 @is_sort:                       ; else if (current_sorting_stage == 1) {
-  jsr sort_stage_render         ;   sort_stage_render();
+  jsr SortScene_render         ;   SortScene_render();
 @end:                           ; }
 
   rts                           ; return;
