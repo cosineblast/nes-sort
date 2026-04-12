@@ -1,3 +1,15 @@
+;; main.s: Dynamic dispatch scene
+;; This project uses a NES runtime organization model
+;; such that execution is always divided between 'updates'
+;; and 'renders'.
+;; Updates can run for as long as necessary, and NMI calls during updates
+;; simply get ignored. This is controlled with is_update.
+;; Update code doesn't touch the PPU unless it disables rendering with
+;; PPUMASK and PPUCTRL.
+;; The nmi handler and update handlers decide which function to run based on
+;; dynamic dispatch of the update_procedure_address and render_procedure_address
+;; global addresses.
+
 ;; Note: includes must always be followed by segment directives
 ;; since includes may include their own segment directives
 
@@ -14,7 +26,7 @@
 .segment "VECTORS"
     ;; NMI Handler, Reset Handler, IRQ Handler
     .addr nmi_handler
-    .addr on_reset
+    .addr reset_handler
     .addr 0
 
 
@@ -32,7 +44,7 @@
   SCENE_UPDATE = MenuScene_update
   SCENE_RENDER = MenuScene_render
 
-on_reset:
+reset_handler:
   sei		; disable IRQs
   cld		; disable decimal mode
   ldx #$40
@@ -69,20 +81,61 @@ vblankwait2:
   bit PPUSTATUS
   bpl vblankwait2
 
-main:
   lda #1                      ; Begin first update
   sta is_updating
 
-  jsr SCENE_INIT
+first_load:
+  lda #<SCENE_INIT
+  sta local0
+  lda #>SCENE_INIT
+  sta local1
+
+  lda #<SCENE_UPDATE
+  sta update_procedure_address
+  lda #>SCENE_UPDATE
+  sta update_procedure_address+1
+
+  lda #<SCENE_RENDER
+  sta render_procedure_address
+  lda #>SCENE_RENDER
+  sta render_procedure_address+1
+
+;; This is a JMP-call procedure (as opposed to JSR-call)
+;; that replaces the current root scene being rendered by the application.
+;; It assumes the init address is located in local0..local1, and that
+;; the global variables (render|update)_procedure_address have been set
+;; to the update and render addresses of the procedures
+;; This procedure must be called during an update.
+load_scene:
+  ;; reset stack
+  ldx #$ff
+  txs
+
+  lda #>load_return
+  pha 
+  lda #<load_return
+  pha
+  jmp (local0)
+;; considering load_jmp sets the return address to this position,
+;; we need the no op since rts expects the return address to be
+;; the original jsr instruction pointer, not the next address
+;; this same technique is used later on in other indirect jumps
+load_return:
+  nop
 
 update: ;; while (true) {
-
   ; while (!is_updating) {  }
   @wait_update:
   lda is_updating
   beq @wait_update
 
-  jsr SCENE_UPDATE
+  lda #>update_return
+  pha
+  lda #<update_return
+  pha
+  jmp (update_procedure_address)
+update_return:
+  nop
 
   lda #0
   sta is_updating;; is_updating = 0
@@ -99,7 +152,15 @@ nmi_handler:
   plp
   rti                           ; return
 :                               ; }
-  jsr SCENE_RENDER
+
+  ;; render_procedure_address()
+  lda #>render_return
+  pha
+  lda #<render_return
+  pha
+  jmp (render_procedure_address)
+render_return:
+  nop
 
   lda #1
   sta is_updating
@@ -113,3 +174,4 @@ nmi_handler:
 
 .incbin "pattern-table.bin"
 .incbin "alphabet-table.bin"
+.export load_scene

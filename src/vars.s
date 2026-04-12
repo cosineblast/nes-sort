@@ -47,6 +47,11 @@ render_columns: .res (2 * RENDER_COLUMN_HEIGHT)
 ;; 1 if update code is/should be running (NMI code should rti immediately)
 is_updating: .res 1
 
+.align 2
+update_procedure_address: .res 2
+render_procedure_address: .res 2
+
+
 ;; in sorting scene:
 ;; 0 when the program is doing the initial render of the tiles
 ;; 1 when the program is already rendering the algorithm steps
@@ -63,7 +68,7 @@ rng_seed: .res 2
 render_columns_positions: .res 2
 
 ;; The controller input value
-controller_value: .res 8
+controller_value: .res 1
 
 ;; The current value stored in PPUCTRL
 ;; we store this in a special variable since
@@ -118,6 +123,9 @@ coroutine_stack_start: .res 256
 .export local15
 
 .export render_columns
+
+.export update_procedure_address
+.export render_procedure_address
 
 .export is_updating
 .export current_sorting_stage

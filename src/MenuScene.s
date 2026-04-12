@@ -19,6 +19,11 @@
 
   .import get_input
 
+  .import load_scene
+  .import RootScene_init
+  .import RootScene_update
+  .import RootScene_render
+
 title_data:
   ;; "NESORT 1.0"
   .byte $26, $1D, $2B, $27, $2A, $2C, $00, $33, $3D, $34
@@ -123,7 +128,6 @@ MenuScene_init:
   @not_down: ;; } }
   
   lda controller_value
-
   and #%00001000
   beq @not_up ;; if (input & JOY_UP != 0) {
 
@@ -132,7 +136,35 @@ MenuScene_init:
 
   dec MenuScene_selected_sort ;; selected_sort -= 1
 
-  @not_up: ;; }
+  @not_up: ;; } }
+
+  lda controller_value
+  and #%10000000
+  beq @not_a ;; if (input & JOY_A != 0) {
+
+  ;; local2 is the register RootScene uses for picking the algorithm
+  lda MenuScene_selected_sort
+  sta local2
+
+  lda #<RootScene_init
+  sta local0
+  lda #>RootScene_init
+  sta local1
+
+  lda #<RootScene_update
+  sta update_procedure_address
+  lda #>RootScene_update
+  sta update_procedure_address+1
+
+  lda #<RootScene_render
+  sta render_procedure_address
+  lda #>RootScene_render
+  sta render_procedure_address+1
+
+  jmp load_scene
+
+
+  @not_a: ;; }
   
   rts
 .endproc

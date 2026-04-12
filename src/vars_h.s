@@ -22,6 +22,8 @@
 
 .bss
 
+.import update_procedure_address
+.import render_procedure_address
 .import is_updating
 .import current_sorting_stage
  MenuScene_selected_sort = current_sorting_stage

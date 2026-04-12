@@ -19,9 +19,34 @@
 
 
 RootScene_init:
-  ;; Changing palette colors
-  bit PPUSTATUS
 
+
+  ;; Initializing necessary global variables to zero
+  lda #00
+  sta current_sorting_stage
+  sta render_columns_positions
+  sta render_columns_positions+1
+  sta controller_value
+  sta ppuctrl_value
+  sta array_scroll_offset
+  sta init_stage_index
+  sta coroutine_started
+  sta coroutine_s_register
+
+  ;; Setting rng seed
+  lda #231                      
+  sta rng_seed
+  lda #$ff
+  sta rng_seed+1
+
+  ;; Turning off rendering, as we'll be touching PPU VRAM during update
+  lda #00
+  bit PPUSTATUS
+  sta PPUMASK
+  sta PPUCTRL
+  sta ppuctrl_value
+
+  ;; Changing palette colors
   lda #$3f
   sta PPUADDR
 
@@ -50,14 +75,6 @@ RootScene_init:
   sta PPUMASK
 
 generate_numbers:
-
-  lda #231                      ; setting rng_seed
-  sta rng_seed
-
-  lda #$ff
-  sta rng_seed+1
-
-
   ;; Initialize array
   ;; 0..100 is initalized with 0..100
   ;; 101..127 is initalized with 1..7
