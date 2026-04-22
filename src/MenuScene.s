@@ -230,6 +230,9 @@ MenuScene_init:
 .proc reset_colors
   ;; Changing palette colors
   bit PPUSTATUS
+  lda #00
+  sta PPUCTRL
+  sta PPUMASK
 
   lda #$3f    ;; set_PPUADDR(0x3F00)
   sta PPUADDR

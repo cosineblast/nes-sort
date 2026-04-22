@@ -87,8 +87,42 @@
 ;; Change 'insertion_sort' here to use other sorting algorithms
 ;; (e.g heap_sort)
 
+  lda #>sort_end
+  pha
+  lda #<sort_end
+  pha
   jmp (selected_sort_function)
   nop
+  sort_end:
+  nop
+
+  .import load_scene
+  .import MenuScene_init
+  .import MenuScene_update
+  .import MenuScene_render
+  
+  lda #<MenuScene_init
+  sta local0
+  lda #>MenuScene_init
+  sta local1
+
+  lda #<MenuScene_update
+  sta update_procedure_address
+  lda #>MenuScene_update
+  sta update_procedure_address+1 ; update_procedure_address = MenuScene_update
+
+  lda #<MenuScene_render
+  sta render_procedure_address
+  lda #>MenuScene_render
+  sta render_procedure_address+1 ; render_procedure_address = MenuScene_render
+
+  ; longjump load_scene(MenuScene_init)
+  jmp load_scene
+  rts
+  rts
+  rts
+  rts
+  rts
 
   lda #1
   sta local2
