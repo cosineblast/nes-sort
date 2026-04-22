@@ -86,7 +86,9 @@
 
 ;; Change 'insertion_sort' here to use other sorting algorithms
 ;; (e.g heap_sort)
-  jsr heap_sort
+
+  jmp (selected_sort_function)
+  nop
 
   lda #1
   sta local2

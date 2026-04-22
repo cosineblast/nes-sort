@@ -1,5 +1,4 @@
 
-
 .include "IO_REGISTERS.s"
 .include "vars_h.s"
 
@@ -23,6 +22,9 @@
   .import RootScene_init
   .import RootScene_update
   .import RootScene_render
+
+  .import heap_sort
+  .import insertion_sort
 
 title_data:
   ;; "NESORT 1.0"
@@ -142,9 +144,13 @@ MenuScene_init:
   and #%10000000
   beq @not_a ;; if (input & JOY_A != 0) {
 
-  ;; local2 is the register RootScene uses for picking the algorithm
   lda MenuScene_selected_sort
-  sta local2
+  asl
+  tax
+  lda @sorting_algorithm_table, x
+  sta selected_sort_function
+  lda @sorting_algorithm_table+1, x
+  sta selected_sort_function+1 ; selected_sort_function = sorting_algorithm_table[selected_sort]
 
   lda #<RootScene_init
   sta local0
@@ -154,19 +160,26 @@ MenuScene_init:
   lda #<RootScene_update
   sta update_procedure_address
   lda #>RootScene_update
-  sta update_procedure_address+1
+  sta update_procedure_address+1 ; update_procedure_address = RootScene_update
 
   lda #<RootScene_render
   sta render_procedure_address
   lda #>RootScene_render
-  sta render_procedure_address+1
+  sta render_procedure_address+1 ; render_procedure_address = RootScene_render
 
+  ; longjump load_scene(RootScene_init)
   jmp load_scene
 
 
   @not_a: ;; }
   
   rts
+
+@sorting_algorithm_table:
+  .byte <insertion_sort
+  .byte >insertion_sort
+  .byte <heap_sort
+  .byte >heap_sort
 .endproc
 
 .proc MenuScene_render

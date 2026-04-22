@@ -51,14 +51,24 @@ is_updating: .res 1
 update_procedure_address: .res 2
 render_procedure_address: .res 2
 
+;; The controller input value
+controller_value: .res 1
+
+;; The current value stored in PPUCTRL
+;; we store this in a special variable since
+;; PPUCTRL is a special memory mapped IO address
+ppuctrl_value: .res 1
 
 ;; in sorting scene:
 ;; 0 when the program is doing the initial render of the tiles
 ;; 1 when the program is already rendering the algorithm steps
 ;; 2 when the program is done with the algorithm
 ;; 
-;; in menu scene:
+;; in menu scene, this address represents the sorting algorithm currently
+;; being selected
 current_sorting_stage: .res 1
+
+selected_sort_function: .res 2
 
 ;; The rng_seed for the random number generation
 rng_seed: .res 2
@@ -67,13 +77,6 @@ rng_seed: .res 2
 ;; -1 means don't render anything
 render_columns_positions: .res 2
 
-;; The controller input value
-controller_value: .res 1
-
-;; The current value stored in PPUCTRL
-;; we store this in a special variable since
-;; PPUCTRL is a special memory mapped IO address
-ppuctrl_value: .res 1
 
 ;; The index of the array element
 ;; the screen should start at
@@ -124,10 +127,11 @@ coroutine_stack_start: .res 256
 
 .export render_columns
 
+.export is_updating
 .export update_procedure_address
 .export render_procedure_address
+.export selected_sort_function
 
-.export is_updating
 .export current_sorting_stage
 .export rng_seed
 .export render_columns_positions
