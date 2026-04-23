@@ -25,6 +25,7 @@
 
   .import heap_sort
   .import insertion_sort
+  .import merge_sort
 
 title_data:
   ;; "NESORT 1.0"
@@ -42,7 +43,11 @@ heap_sort_string:
   ;; "HEAP SORT"
   .byte $20, $1D, $19, $28, $00, $2B, $27, $2A, $2C
 
-SORTING_ALGORITHM_COUNT = 2
+merge_sort_string:
+  ;; "MERGE SORT"
+  .byte $25, $1D, $2A, $1F, $1D, $00, $2B, $27, $2A, $2C
+
+SORTING_ALGORITHM_COUNT = 3
 
 ;; TODO: rewrite as a procedure
 ;; X, Y: ppu addr
@@ -97,6 +102,10 @@ MenuScene_init:
   ldx #$20
   ldy #$C6
   write_static_str heap_sort_string, 9
+
+  ldx #$20
+  ldy #$E6
+  write_static_str merge_sort_string, 10
 
   bit PPUSTATUS
   lda #00
@@ -187,6 +196,8 @@ MenuScene_init:
   .byte >insertion_sort
   .byte <heap_sort
   .byte >heap_sort
+  .byte <merge_sort
+  .byte >merge_sort
 .endproc
 
 .proc MenuScene_render

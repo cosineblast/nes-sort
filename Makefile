@@ -10,7 +10,8 @@ TARGETS = build/main.o \
 	build/heap_sort.o \
 	build/coroutine.o \
 	build/vars.o \
-	build/input.o
+	build/input.o \
+	build/merge_sort.o
 
 all: build/sort.nes
 
