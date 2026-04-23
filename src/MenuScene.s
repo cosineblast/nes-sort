@@ -30,6 +30,10 @@ title_data:
   ;; "NESORT 1.0"
   .byte $26, $1D, $2B, $27, $2A, $2C, $00, $33, $3D, $34
 
+;; helper function in python for generating byte sequences for the string
+;; letter_byte = lambda c: '{:X}'.format(0x19 + ord(c) - ord('A'))
+;; transform = lambda s: [letter_byte(c) if c.isalpha() else 0  for c in s]
+;; >>> transform('MERGE SORT')
 insertion_sort_string:
   ;; "INSERTION SORT"
   .byte $21, $26, $2B, $1D, $2A, $2C, $21, $27, $26, $00, $2B, $27, $2A, $2C
@@ -38,6 +42,7 @@ heap_sort_string:
   ;; "HEAP SORT"
   .byte $20, $1D, $19, $28, $00, $2B, $27, $2A, $2C
 
+SORTING_ALGORITHM_COUNT = 2
 
 ;; TODO: rewrite as a procedure
 ;; X, Y: ppu addr
@@ -121,9 +126,11 @@ MenuScene_init:
   and #%00000100
   beq @not_down ;; if (input & JOY_DOWN != 0) {
 
+  ;; TODO: implement controller input differentiation
+  ;; to only activate this during keypress, not on hold
   lda MenuScene_selected_sort
-  cmp #1
-  beq @not_down ;; if (selected_sort != 1) {
+  cmp #SORTING_ALGORITHM_COUNT-1
+  beq @not_down ;; if (selected_sort != SORTING_ALGORITHM_COUNT-1) {
 
   inc MenuScene_selected_sort ;; selected_sort += 1
 
@@ -195,7 +202,7 @@ MenuScene_init:
 
 @loop: 
   txa
-  cmp #2
+  cmp #SORTING_ALGORITHM_COUNT
   beq @loop_end  ;; while (option_index != SORTING_ALOGIRTHM_COUNT) {  
   
   txa
