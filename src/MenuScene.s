@@ -106,11 +106,11 @@ MenuScene_init:
 
 
   bit PPUSTATUS
-  lda #%00001000                ; Enable background
+  lda #PPUMASK_ENABLE_BACKGROUND
   sta PPUMASK
 
   bit PPUSTATUS
-  lda #%10000000                ; Enable NMI
+  lda #PPUCTRL_ENABLE_NMI
   sta ppuctrl_value
   sta PPUCTRL
 
@@ -303,7 +303,7 @@ write_column:
 
 .proc ppuctrl_write_to_right
   lda ppuctrl_value
-  and #%11111011
+  and #($FF & ~ PPUCTRL_WRITE_VERTICAL)
   bit PPUSTATUS
   sta PPUCTRL 
   sta ppuctrl_value
@@ -312,7 +312,7 @@ write_column:
 
 .proc ppuctrl_write_downard
   lda ppuctrl_value
-  ora #%00000100
+  ora #PPUCTRL_WRITE_VERTICAL
   bit PPUSTATUS
   sta PPUCTRL
   sta ppuctrl_value

@@ -67,11 +67,11 @@ RootScene_init:
   sta PPUADDR
   sta PPUADDR
 
-  lda #%10000100                ; Enable NMI, PPUDATA writes increment downard
+  lda #(PPUCTRL_ENABLE_NMI | PPUCTRL_WRITE_VERTICAL)
   sta ppuctrl_value
   sta PPUCTRL
 
-  lda #%00001010                ; Enable background and leftmost column
+  lda #(PPUMASK_ENABLE_BACKGROUND | PPUMASK_ENABLE_BACKGROUND_LEFTMOST)
   sta PPUMASK
 
 generate_numbers:
