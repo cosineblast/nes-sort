@@ -1,5 +1,5 @@
 
-.include "IO_REGISTERS.s"
+.include "io_registers_h.s"
 .include "vars_h.s"
 
 .segment "CODE"

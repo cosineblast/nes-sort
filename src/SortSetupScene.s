@@ -1,6 +1,6 @@
 
 .include "vars_h.s"
-.include "IO_REGISTERS.s"
+.include "io_registers_h.s"
 
 .import render_columns_from_positions
 .import compute_column_tiles

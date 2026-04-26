@@ -2,7 +2,7 @@
 .segment "CODE"
 
 .include "vars_h.s"
-.include "IO_REGISTERS.s"
+.include "io_registers_h.s"
 
 .code
 

@@ -13,7 +13,8 @@
 ;; Note: includes must always be followed by segment directives
 ;; since includes may include their own segment directives
 
-.include "IO_REGISTERS.s"
+.include "io_registers_h.s"
+
 .include "vars_h.s"
 
 .segment "HEADER"

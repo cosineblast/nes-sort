@@ -1,5 +1,5 @@
 .include "vars_h.s"
-.include "IO_REGISTERS.s"
+.include "io_registers_h.s"
 
 ;; column.s
 .import notify_update
