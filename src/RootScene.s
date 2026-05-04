@@ -39,7 +39,8 @@ RootScene_init:
   lda #$ff
   sta rng_seed+1
 
-  ;; Turning off rendering, as we'll be touching PPU VRAM during update
+  ;; Turning off rendering, as we'll be touching PPU VRAM during scene initialization and
+  ;; setup scene updates
   lda #00
   bit PPUSTATUS
   sta PPUMASK
@@ -49,7 +50,6 @@ RootScene_init:
   ;; Changing palette colors
   lda #$3f
   sta PPUADDR
-
   lda #0
   sta PPUADDR
 
@@ -57,6 +57,24 @@ RootScene_init:
   sta PPUDATA
 
   lda #$20
+  sta PPUDATA
+  sta PPUDATA
+
+  lda #$3f
+  sta PPUADDR
+  lda #$10
+  sta PPUADDR
+
+  lda #$0f
+  sta PPUDATA
+
+  lda #$20
+  sta PPUDATA
+
+  lda #$16
+  sta PPUDATA
+
+  lda #$11
   sta PPUDATA
 
   ;; Pallete Escape Hack
@@ -71,7 +89,7 @@ RootScene_init:
   sta ppuctrl_value
   sta PPUCTRL
 
-  lda #(PPUMASK_ENABLE_BACKGROUND | PPUMASK_ENABLE_BACKGROUND_LEFTMOST)
+  lda #(PPUMASK_ENABLE_SPRITES | PPUMASK_ENABLE_BACKGROUND | PPUMASK_ENABLE_BACKGROUND_LEFTMOST)
   sta PPUMASK
 
 generate_numbers:

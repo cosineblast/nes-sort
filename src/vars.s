@@ -101,10 +101,10 @@ coroutine_local0: .res 8
 sorting_array: .res 128
 aux_array: .res 128
 
-.align 256
-
 ;; The coroutine stack
 coroutine_stack_start: .res 256
+
+oam_buffer: .res 256
 
 ;; Exports
 
@@ -147,3 +147,4 @@ coroutine_stack_start: .res 256
 .export sorting_array
 .export aux_array
 .export coroutine_stack_start
+.export oam_buffer

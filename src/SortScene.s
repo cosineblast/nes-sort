@@ -81,11 +81,8 @@
   rts
 .endproc
 
-;; TODO: document sorting routine ABI
+;; TODO: document sorting coroutine ABI
 .proc sort_array
-
-;; Change 'insertion_sort' here to use other sorting algorithms
-;; (e.g heap_sort)
 
   lda #>sort_end
   pha
@@ -118,10 +115,6 @@
 
   ; longjump load_scene(MenuScene_init)
   jmp load_scene
-  rts
-  rts
-  rts
-  rts
   rts
 
   lda #1
@@ -176,6 +169,11 @@
   asl A
   asl A
   sta PPUSCROLL
+
+  lda #00
+  sta OAMADDR
+  lda #>oam_buffer
+  sta OAMDMA; domain expansion: direct memory access
 
   ; set_PPUSCROLL(224);
   lda #224

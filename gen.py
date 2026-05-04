@@ -11,7 +11,7 @@ def flatten(rows):
 
 def generate_tile(x, y):
     left = ([0] * (2 * (4 - x))) + ([1] * (2 * x))
-    right = ([0] * (2 * (4 - y))) + ([1] * (2 * y))
+    right = ([0] * (2 * (4 - y))) + ([2] * (2 * y))
     
     transposed = ([left] * 4) + ([right] * 4)
     

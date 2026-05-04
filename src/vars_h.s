@@ -1,4 +1,5 @@
 
+.pushseg
   ;; vars_h.s
 
   ;; this header file contains the imports for all
@@ -46,3 +47,6 @@
 
 .import coroutine_stack_start
 
+.import oam_buffer
+
+.popseg
