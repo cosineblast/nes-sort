@@ -20,11 +20,13 @@
 .proc notify_update
 
   lda local0
+  pha
   lsr A
   sta local2
   sta render_columns_positions
 
   lda local1
+  pha
   lsr A
   cmp local2
 
@@ -44,28 +46,36 @@
   lda #RENDER_COLUMN_HEIGHT
   jsr compute_column_tiles_from_index
 
+  pla
+  sta local1
+  pla
+  sta local0
   jsr compute_oam_data_for_update
 
   rts
 .endproc
 
 .proc compute_oam_data_for_update
-  ;; lda #00
-  ;; jsr compute_oam_single_column ; compute_oam_single_column(0)
-  ;; rts
+  ;; Arguments:
+  ;; local0: index0: First index to notify column update
+  ;; local1: index1: Second index to notify column update
+  ;;
+  ;; Clobbers:
+  ;; lots of stuff
 
+  lda local0
+  sta local4
+  lda local1
+  sta local5
+  
   lda array_scroll_offset
-  lsr A
-  cmp render_columns_positions+0; // scroll offset is in terms of array elements,
-                                ; // render_column_positions is in terms of tiles,
-                                ; // so we the divide by 2 before we compare.
-  bpl :+                        ; if (array_scroll_offset / 2 <= render_column_positions[0]
+  cmp local4
+  bpl :+                        ; if (array_scroll_offset <= index0
 
-  sta local0
-  lda render_columns_positions+0
+  lda local4
   sec
-  sbc local0       ; && array render_column_positions[0] - array_scroll_offset/2 < 30) {
-  cmp #32
+  sbc array_scroll_offset       ; && index0 - array_scroll_offset < 64) {
+  cmp #64
   bpl :+
   beq :+
 
@@ -77,22 +87,27 @@
   lda #00
   jsr zero_oam_buffer_half
 :
-  rts
 
-  lda render_columns_positions+1  
-  cmp array_scroll_offset
-  bmi :+                        ; if (render_column_positions[1] >= array_scroll_offset
+  lda array_scroll_offset
+  cmp local5
+  bpl :+                        ; if (array_scroll_offset <= index1
 
+  lda local5
   sec
-  sbc array_scroll_offset
-  cmp #30
+  sbc array_scroll_offset       ; && index[1] - array_scroll_offset < 64) {
+  cmp #64
   bpl :+
-  beq :+                        ; && array render_column_positions[1] - array_scroll_offset < 30) {
+  beq :+
 
   lda #01
   jsr compute_oam_single_column ; compute_oam_single_column(1)
 
+  jmp :++
 :                               ; }
+  lda #01
+  jsr zero_oam_buffer_half
+:
+
   rts
 .endproc
 
@@ -123,6 +138,7 @@
   ;; A: column_index: the column to render (0 or 1)
   ;; this parameter also dictates if values will be written in first or second
   ;; half of OAM buffer
+  ;; local4,local5: array access indices
 
   tax
   tay
@@ -130,30 +146,44 @@
   lda #15
   sta local0                ; sprite_y = 15
 
-  lda render_columns_positions, y
-  asl A
+;; this may cause issues.
+  lda local4, x
   sec
   sbc array_scroll_offset
+  lsr A
+  asl A
   asl A
   asl A
   sta local1                ; sprite_x = render_columns_positions[column_index] * 8
 
-  ;;txa
-  ;;beq :+
-  ;;ldy #(2*RENDER_COLUMN_HEIGHT)
-  ;;jmp :++
-  ;;:
+  txa
+  beq :+
+  ldy #(2*RENDER_COLUMN_HEIGHT)
+  jmp :++
+  :
     ldy #RENDER_COLUMN_HEIGHT 
-  ;;: ; sprite_index = column_index == 0 ? RENDER_COLUMN_HEIGHT : 2 * RENDER_COLUMN_HEIGHT
+  : ; sprite_index = column_index == 0 ? RENDER_COLUMN_HEIGHT : 2 * RENDER_COLUMN_HEIGHT
 
 
-  ;;txa
-  ;;beq :+
-  ;;ldx #128
-  ;;jmp :++
-  ;;:
-  ldx #00                   
-  ;;: ; data_index = column_index == 0 ? 0 : 128
+  txa
+  beq :+                   ; if (column_index != 0) {
+
+  ldx #128                 ;   data_index = 128
+
+  lda #RENDER_COLUMN_HEIGHT;
+  sta local7               ;   stop_sprite_index = RENDER_COLUMN_HEIGHT
+
+  jmp :++                  ; else {
+  :
+
+  ldx #00                  ;   data_index = 0
+
+  lda #00
+  sta local7               ;   stop_sprite_index = 0
+
+  :                        ; }
+
+  sta local7 ; stop = 
 
 @loop:                      ;  do {
   dey                       ;   sprite_index -= 1
@@ -181,8 +211,9 @@
   sta local0                ;   sprite_y += 8
 
   tya
+  cmp local7
   bne @loop
-  @loop_end:                ; } while (sprite_index != 0)
+  @loop_end:                ; } while (sprite_index != stop_sprite_index)
 
   rts
 .endproc
