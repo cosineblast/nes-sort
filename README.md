@@ -1,5 +1,5 @@
 
-# nessiesort
+# NESSort
 
 This project consists of a sorting algorithm visualizer, implemented for the
 Nintendo Entertainement System.
@@ -12,10 +12,10 @@ Supported Algorithms:
 
 ## building the project
 
-The projects requires [cc65](https://cc65.github.io/) and [pydoit](https://pydoit.org/)
+The projects requires [cc65](https://cc65.github.io/) and [GNU Make](https://www.gnu.org/software/make/)
 for the build process.
 
-To build the project, run `doit`, which will generate the ROM at `build/sort.nes`.
+To build the project, run `make`, which will generate the ROM at `build/sort.nes`.
 
 ### building with nix
 
