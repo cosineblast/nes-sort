@@ -6,6 +6,7 @@
 
 
 .import sortapi_signal_read
+.import sortapi_signal_read2
 
 LEN = 128
 
@@ -182,13 +183,9 @@ loop: ; while (true) {
 	push local1
 	push local2
 
-	push right
-
 	lda left
-	jsr sortapi_signal_read ; sortapi_signal_read(left)
-
-	pla
-	jsr sortapi_signal_read ; sortapi_signal_read(right)
+	ldx right
+	jsr sortapi_signal_read2 ; sortapi_signal_read2(left)
 	
 
 	pull local2

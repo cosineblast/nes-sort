@@ -175,6 +175,19 @@
   jmp coroutine_yield
 .endproc
 
+;; A: index0
+;; X: index1
+;; clobbers  A, local0, local1, local2, X , Y
+.proc sortapi_signal_read2
+  sta local0
+  stx local1
+
+  lda #0
+  sta local2
+
+  jmp coroutine_yield
+.endproc
+
 .proc SortScene_render
 
 .import render_columns_from_positions
@@ -214,3 +227,4 @@
 .export SortScene_update
 .export SortScene_render
 .export sortapi_signal_read
+.export sortapi_signal_read2
