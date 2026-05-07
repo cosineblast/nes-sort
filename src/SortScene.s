@@ -163,7 +163,7 @@
 .endproc
 
 ;; A: index0
-;; clobbers: A, local0, local1, local2
+;; clobbers: A, local0, local1, local2, X , Y
 .proc sortapi_signal_read
 
   sta local0

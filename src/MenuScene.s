@@ -26,12 +26,13 @@
   .import heap_sort
   .import insertion_sort
   .import merge_sort
+  .import radix_sort
 
 title_data:
   ;; "NESORT 1.0"
   .byte $26, $1D, $2B, $27, $2A, $2C, $00, $33, $3D, $34
 
-;; helper function in python for generating byte sequences for the string
+;; # helper function in python for generating byte sequences for the string
 ;; letter_byte = lambda c: '{:X}'.format(0x19 + ord(c) - ord('A'))
 ;; transform = lambda s: [letter_byte(c) if c.isalpha() else 0  for c in s]
 ;; >>> transform('MERGE SORT')
@@ -47,7 +48,12 @@ merge_sort_string:
   ;; "MERGE SORT"
   .byte $25, $1D, $2A, $1F, $1D, $00, $2B, $27, $2A, $2C
 
-SORTING_ALGORITHM_COUNT = 3
+radix_sort_string:
+  ;; "RADIX SORT"
+  .byte $2A, $19, $1C, $21, $30, $00, $2B, $27, $2A, $2C  
+
+
+SORTING_ALGORITHM_COUNT = 4
 
 ;; TODO: rewrite as a procedure
 ;; X, Y: ppu addr
@@ -106,6 +112,10 @@ MenuScene_init:
   ldx #$20
   ldy #$E6
   write_static_str merge_sort_string, 10
+
+  ldx #$21
+  ldy #$06
+  write_static_str radix_sort_string, 10
 
   bit PPUSTATUS
   lda #00
@@ -198,6 +208,8 @@ MenuScene_init:
   .byte >heap_sort
   .byte <merge_sort
   .byte >merge_sort
+  .byte <radix_sort
+  .byte >radix_sort
 .endproc
 
 .proc MenuScene_render

@@ -12,7 +12,8 @@ TARGETS = build/main.o \
 	build/coroutine.o \
 	build/vars.o \
 	build/input.o \
-	build/merge_sort.o
+	build/merge_sort.o \
+	build/radix_sort.o
 
 all: build/sort.nes
 

@@ -2,44 +2,18 @@
 .code
 
 .include "vars_h.s"
+.include "util_macros_h.s"
+
 
 .import sortapi_signal_read
 
-.macro push v
-	lda v
-	pha
-.endmacro
-
-.macro pushx
-	txa
-	pha
-.endmacro
-
-.macro pushy
-	tya
-	pha
-.endmacro
-
-.macro pull v
-	pla
-	sta v
-.endmacro
-
-.macro pullx
-	pla
-	tax
-.endmacro
-
-.macro pully
-	pla
-	tay
-.endmacro
+LEN = 128
 
 .proc merge_sort
 	lda #00
 	sta local0
 
-	lda #128
+	lda #LEN
 	sta local1
 	jmp merge_sort_internal
 .endproc
