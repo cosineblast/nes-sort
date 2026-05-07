@@ -2,8 +2,8 @@
 ;; Start of 6502 stack
 stack_start = $0100
 
-;; altough the $00 address is not used, a future implementation
-;; might use $00-$07 instead of $01-$08 for the local registers
+;; The number of localN zero-page registers that can be used
+;; by functions in general
 LOCAL_REGISTER_COUNT = 8
 
 ;; The height (in tiles of a column that will be rendered).

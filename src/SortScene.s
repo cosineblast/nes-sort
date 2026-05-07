@@ -81,7 +81,18 @@
   rts
 .endproc
 
-;; TODO: document sorting coroutine ABI
+;; Sorting coroutine function.
+;; This is the entry point of the coroutine that sorts the array.
+;; When the coroutine does some visualizable array operation,
+;; such as swapping, it will call coroutine_yield and tell what operation
+;; was done.
+;; 
+;; When the coroutine yields, the value of the local registers on the original execution
+;; context  gets set to the values of the local registers of the coroutine at yield, meaning
+;; that the main execution context can directly see the values of the locals at yield,
+;; and it uses this information to tell on the reason for the coroutine yield.
+;; local2 is used to indicate whether the coroutine has ended its execution or not.
+;; local0 and local1 indicate the indices of the array elements that were swapped.
 .proc sort_array
 
   lda #>sort_end
