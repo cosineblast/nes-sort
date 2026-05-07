@@ -159,6 +159,7 @@
   sty local1
   lda #0
   sta local2
+  jsr coroutine_yield
   jmp coroutine_yield
 .endproc
 
