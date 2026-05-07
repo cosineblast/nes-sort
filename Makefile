@@ -8,6 +8,7 @@ TARGETS = build/main.o \
 	build/SortScene.o \
 	build/insertion_sort.o \
 	build/heap_sort.o \
+	build/merge_sort.o \
 	build/coroutine.o \
 	build/vars.o \
 	build/input.o \
@@ -23,7 +24,8 @@ build/%.o: src/%.s
 	ca65 $^ -o $@
 
 build/sort.nes: $(TARGETS)
-	ld65 $^ -o $@ --config linker_config.cfg
+	echo ld65 stuff -o build/sort.nes
+	@ld65 $^ -o $@ --config linker_config.cfg
 
 .PHONY: all clean
 	

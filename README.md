@@ -9,6 +9,7 @@ in video format.
 Supported Algorithms:
 - Insertion Sort
 - Heap Sort
+- Merge Sort
 
 ## building the project
 

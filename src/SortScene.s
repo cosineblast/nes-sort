@@ -138,6 +138,7 @@
 ;; A: index0
 ;; X: index1
 ;; clobbers: A,X,Y, local0, local1, local2
+;; TODO: rename to sortapi_swap
 .proc swap
 
 ; tmp = array[index0]
@@ -158,6 +159,19 @@
   sty local1
   lda #0
   sta local2
+  jmp coroutine_yield
+.endproc
+
+;; A: index0
+;; clobbers: A, local0, local1, local2
+.proc sortapi_signal_read
+
+  sta local0
+  sta local1
+
+  lda #0
+  sta local2
+
   jmp coroutine_yield
 .endproc
 
@@ -199,4 +213,4 @@
 .export swap
 .export SortScene_update
 .export SortScene_render
-
+.export sortapi_signal_read
